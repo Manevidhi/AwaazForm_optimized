@@ -5,6 +5,23 @@ import re
 from .schemas import FormField, Option
 
 
+def guess_type(question: str) -> str:
+    """Guess a field type from its label. Shared by the paste parser and the link reader."""
+    if re.search(r"aadhaar|aadhar|आधार|\bpan\b|bank account|card number", question, re.I):
+        return "sensitive"
+    if re.search(r"date|dob|birth|जन्म|तिथि", question, re.I):
+        return "date"
+    if re.search(r"e-?mail|ईमेल", question, re.I):
+        return "email"
+    if re.search(r"phone|mobile|contact number|मोबाइल|फ़ोन|फोन", question, re.I):
+        return "phone"
+    if re.search(r"pin ?code|पिन", question, re.I):
+        return "pin"
+    if re.search(r"\b(age|amount|income|marks|quantity|how many|how old)\b", question, re.I):
+        return "number"
+    return "text"
+
+
 def parse_text(text: str) -> list[FormField]:
     lines = []
     for line in re.split(r"\r?\n", text):
@@ -24,19 +41,7 @@ def parse_text(text: str) -> list[FormField]:
         label = re.sub(r"\(optional\)|\(वैकल्पिक\)", "", question, flags=re.I)
         label = re.sub(r"\?+\s*$", "?", label).strip()
 
-        ftype = "text"
-        if re.search(r"aadhaar|aadhar|आधार|\bpan\b|bank account|card number", question, re.I):
-            ftype = "sensitive"
-        elif re.search(r"date|dob|birth|जन्म|तिथि", question, re.I):
-            ftype = "date"
-        elif re.search(r"e-?mail|ईमेल", question, re.I):
-            ftype = "email"
-        elif re.search(r"phone|mobile|contact number|मोबाइल|फ़ोन|फोन", question, re.I):
-            ftype = "phone"
-        elif re.search(r"pin ?code|पिन", question, re.I):
-            ftype = "pin"
-        elif re.search(r"\b(age|amount|income|marks|quantity|how many|how old)\b", question, re.I):
-            ftype = "number"
+        ftype = guess_type(question)
 
         options = None
         if options_raw:

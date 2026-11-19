@@ -2,9 +2,11 @@ import pymupdf  # PyMuPDF
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from ..config import settings
+from ..fetcher import FetchError, fetch_html
 from ..parser import parse_text
 from ..samples import SAMPLE_FORMS
-from ..schemas import FormDef, ParseResponse, ParseTextRequest, ValidateRequest, ValidateResponse
+from ..schemas import FormDef, ParseResponse, ParseTextRequest, ParseUrlRequest, ValidateRequest, ValidateResponse
+from ..urlforms import extract_from_page
 from ..validation import normalize
 
 router = APIRouter(prefix="/api", tags=["forms"])
@@ -42,8 +44,8 @@ def parse_pasted_text(req: ParseTextRequest):
     return _response(fields, "en")
 
 
-@router.post("/parse/file", response_model=ParseResponse)
-async def parse_uploaded_file(file: UploadFile = File(...)):
+async def _read_upload(file: UploadFile) -> str:
+    """Return the text of an uploaded .pdf or .txt file, or raise an HTTP error."""
     data = await file.read()
     if len(data) > settings.max_upload_mb * 1024 * 1024:
         raise HTTPException(413, f"File is larger than {settings.max_upload_mb} MB")
@@ -57,12 +59,38 @@ async def parse_uploaded_file(file: UploadFile = File(...)):
             raise HTTPException(422, "Could not read this PDF")
         if not text.strip():
             raise HTTPException(422, "This PDF has no readable text (it may be a scan)")
-    elif name.endswith(".txt") or (file.content_type or "").startswith("text/"):
-        text = data.decode("utf-8", errors="replace")
-    else:
-        raise HTTPException(415, "Upload a .pdf or .txt file")
+        return text
+    if name.endswith(".txt") or (file.content_type or "").startswith("text/"):
+        return data.decode("utf-8", errors="replace")
+    raise HTTPException(415, "Upload a .pdf or .txt file")
 
-    fields = parse_text(text)
+
+@router.post("/extract/text")
+async def extract_text(file: UploadFile = File(...)):
+    """Plain text of an uploaded PDF/TXT. The frontend puts it in the paste box for review."""
+    return {"text": (await _read_upload(file)).strip()}
+
+
+@router.post("/parse/file", response_model=ParseResponse)
+async def parse_uploaded_file(file: UploadFile = File(...)):
+    fields = parse_text(await _read_upload(file))
     if not fields:
         raise HTTPException(422, "No questions found in the file")
     return _response(fields, "en")
+
+
+@router.post("/parse/url", response_model=ParseResponse)
+def parse_form_url(req: ParseUrlRequest):
+    """Visit a public form link and read its questions. Only the link is received, never answers."""
+    try:
+        final_url, html = fetch_html(req.url.strip())
+        source, title, fields = extract_from_page(final_url, html)
+    except FetchError as e:
+        raise HTTPException(e.status, detail={"code": e.code, "message": e.message})
+    return ParseResponse(
+        title={"en": title, "hi": title},
+        fields=fields,
+        flagged=sum(1 for f in fields if f.flag),
+        source=source,
+        source_url=final_url,
+    )

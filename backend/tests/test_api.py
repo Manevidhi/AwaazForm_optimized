@@ -107,3 +107,14 @@ def test_session_roundtrip_drops_sensitive(client):
     assert got["idx"] == 3 and got["lang"] == "hi"
     assert client.delete(f"/api/sessions/{sid}").status_code == 204
     assert client.get(f"/api/sessions/{sid}").status_code == 404
+
+
+def test_extract_text_pdf_and_txt(client):
+    import pymupdf as fitz
+    doc = fitz.open()
+    doc.new_page().insert_text((72, 72), "What is your name?")
+    r = client.post("/api/extract/text", files={"file": ("q.pdf", doc.tobytes(), "application/pdf")})
+    assert r.status_code == 200 and "What is your name?" in r.json()["text"]
+    r = client.post("/api/extract/text", files={"file": ("q.txt", b"Email", "text/plain")})
+    assert r.json()["text"] == "Email"
+    assert client.post("/api/extract/text", files={"file": ("a.exe", b"x", "application/octet-stream")}).status_code == 415

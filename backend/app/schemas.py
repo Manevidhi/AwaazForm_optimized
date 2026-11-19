@@ -22,6 +22,9 @@ class FormField(BaseModel):
     options: Optional[list[Option]] = None
     flag: bool = False
     lang: Optional[Lang] = None
+    # Where the field lives on the original page (Google entry id, or the input's name/id).
+    # Not used by the app yet; a browser extension needs it to fill the real form later.
+    source_key: Optional[str] = None
 
 
 class FormDef(BaseModel):
@@ -47,10 +50,16 @@ class ParseTextRequest(BaseModel):
     text: str = Field(max_length=50_000)
 
 
+class ParseUrlRequest(BaseModel):
+    url: str = Field(max_length=2048)
+
+
 class ParseResponse(BaseModel):
     title: dict[str, str]
     fields: list[FormField]
     flagged: int  # how many fields the parser could not understand
+    source: Optional[str] = None  # "google_forms" or "html" for link reads
+    source_url: Optional[str] = None  # the form's final address after redirects (link reads)
 
 
 # ---- sessions ----
