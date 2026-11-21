@@ -2,13 +2,15 @@
 
 A multilingual, voice-guided form assistant (English and Hindi) for people who find forms hard to fill: low vision, limited dexterity, low literacy, or language barriers.
 
-AwaazForm asks one question at a time, listens to the answer, reads it back, and fills the form only after the user confirms. It never submits anything.
+AwaazForm asks one question at a time, listens to the answer, reads it back, and fills the form after confirmation. Its Chrome extension can click Submit only after the user explicitly confirms.
 
 Built for Katathon 6.0, Problem 402, Theme 4: Assistive Technology. Team CodeKweens.
 
 ## Features
 
 - Guided one-question-at-a-time flow with progress
+- Paste a Google Form or public form link: the server reads its questions and the guided flow asks each one
+- Chrome side-panel extension for live Google Forms reading and filling
 - Voice answers (Web Speech API) and typed answers
 - Read-back and explicit confirmation before every fill
 - Numbered options for choice questions
@@ -19,17 +21,32 @@ Built for Katathon 6.0, Problem 402, Theme 4: Assistive Technology. Team CodeKwe
 - Optional progress save on the device, deleted after 24 hours
 - Accessibility: keyboard shortcuts, high contrast, large text, read-aloud toggle, ARIA live updates
 
-## Run it
+## Run the complete application (Windows)
 
-**Easiest (no server):** open `awaazform-standalone.html` in Chrome or Edge.
+The standalone HTML can still be opened for the offline guided demo. To read form links and use the Chrome extension, run the backend and website locally:
 
-**Modular version (needs a local server):**
+1. Open a terminal in the extracted `Awaaz-main` folder.
+2. Start the backend:
 
-```bash
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --reload --port 8001
+```
+
+3. Open a second terminal in the `Awaaz-main` root folder and run:
+
+```powershell
 python -m http.server 8000
 ```
 
-Then open http://localhost:8000. Voice features need Chrome or Edge on `localhost` or HTTPS.
+4. Open http://localhost:8000 in Chrome or Edge, then paste a form link or the questions to begin.
+5. Install the extension using the instructions in `extension/README.md`. If it is already installed, reload it from `chrome://extensions` after updating the project files.
+
+For production, replace the development `AUTH_SECRET` in `backend/.env` with a long random secret and use HTTPS.
 
 ## Project layout
 
@@ -53,7 +70,7 @@ python3 tools/build_standalone.py
 ## Known limits (MVP)
 
 - Speech uses the browser Web Speech API, not the Whisper server in the spec.
-- Google Form links are checked, but their questions must be copied in by hand. Reading links needs the backend.
+- The Chrome extension targets Google Forms and best-effort supports visible text, radio, checkbox and dropdown questions. Google sign-in, CAPTCHA, file uploads, grids, conditional logic and unusual controls may require manual completion.
 - Saved progress uses browser localStorage, not server-side encrypted sessions.
 - PDF export uses the browser print dialog, so output is not a tagged PDF.
 - Hindi voice depends on the computer having one installed.
@@ -62,3 +79,15 @@ python3 tools/build_standalone.py
 ## Team
 
 Shagun (frontend), Meenakshi (prompts and LLM), Vidhi (backend), Shruti (pitch and spec), Harika (testing and QA).
+
+## Accounts and profile autofill
+
+The backend includes registration, login, profile retrieval and profile update endpoints under `/api/auth`. Basic profile fields include full name, email, mobile number, date of birth, address, city, state, PIN code and preferred language. Passwords are PBKDF2-SHA256 hashed. Set a unique random `AUTH_SECRET` in `backend/.env` before using real accounts.
+
+The website has no sign-in button or profile autofill. The Chrome extension signs in to these endpoints itself, and uses the saved profile to suggest matching answers.
+
+## Google Forms Chrome extension
+
+The `extension/` folder contains a Chrome Manifest V3 extension. It opens in Chrome's side panel beside the original Google Form, reads visible questions, supports text/radio/checkbox/dropdown controls where detected, offers speech input/output, autofills matching profile fields, and allows the user to confirm submission. Follow `extension/README.md` to load it unpacked in Chrome.
+
+The extension is a best-effort integration with Google's rendered form interface, not a guarantee that every Google Form or every question type can be automated. CAPTCHA, authentication, file uploads, grids, conditional sections and unusual controls may require manual completion. Submission is always user-confirmed.

@@ -1,10 +1,10 @@
 import { t, getLang, setLang, applyStatic } from './i18n.js';
 import {
   SAMPLE_FORMS, parseText, normalize, labelFor, displayValue, fieldPrefill,
-  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildPrefillUrl,
+  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildFormUrl, cleanAnswer,
 } from './data.js';
-import { listen, stopListening, speak, speechInputSupported } from './speech.js';
-import { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl } from './api.js';
+import { listen, stopListening, speak, speechInputSupported, speechOutputSupported } from './speech.js';
+import { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl, serverTranslate } from './api.js';
 
 const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174';
 
@@ -12,13 +12,84 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const L = () => getLang();
 
+// ---------- Hindi: questions shown in Hindi, answers saved in the form's language ----------
+const HINDI_WORD_RE = /[\u0905-\u0939\u0958-\u095F]/;   // Hindi letters (digits alone need no translation)
+const hiCache = new Map();
+
+// Translates one piece of text to Hindi, once. Rejects if the server cannot translate it.
+function toHindi(text) {
+  if (!text || HINDI_WORD_RE.test(text)) return Promise.resolve(text);
+  if (!hiCache.has(text)) {
+    hiCache.set(text, serverTranslate(text, 'hi').then((out) => {
+      if (!out) throw new Error('translation unavailable');
+      return out;
+    }).catch((err) => { hiCache.delete(text); throw err; }));
+  }
+  return hiCache.get(text);
+}
+
+// Adds Hindi labels, hints and options to the form, in place. The English text is kept,
+// because the form and the saved answers always use the form's own language.
+async function ensureHindi(form) {
+  const jobs = [];
+  for (const f of form.fields) {
+    const label = f.label.en;
+    if (label && (!f.label.hi || f.label.hi === label)) jobs.push(toHindi(label).then((v) => { f.label.hi = v; }));
+    if (f.hint?.en && (!f.hint.hi || f.hint.hi === f.hint.en)) jobs.push(toHindi(f.hint.en).then((v) => { f.hint.hi = v; }));
+    for (const o of f.options || []) {
+      const eng = o.en || o.v;
+      if (eng && (!o.hi || o.hi === eng)) jobs.push(toHindi(eng).then((v) => { o.hi = v; }));
+    }
+  }
+  await Promise.all(jobs);
+}
+
+// Translates a Hindi answer into the form's language (English).
+// Speech recognition and translation add marks that are not part of an answer: a full stop
+// after a name or number, a bar ("|") or a Hindi sentence mark (।). They are removed before checking.
+async function toEnglish(text) {
+  const out = await serverTranslate(cleanAnswer(text), 'en');
+  if (!out) throw new Error('translation unavailable');
+  return cleanAnswer(out);
+}
+
+// Hands-free voice mode: the app reads each question, listens, reads the answer back and waits
+// for yes or no. `voice.run` is a token: any manual action or "stop" changes it and ends the loop.
+const voice = { on: false, offering: false, run: 0 };
+
+const YES_WORDS = new Set(['yes', 'yeah', 'yep', 'yup', 'correct', 'right', 'ok', 'okay', 'sure',
+  'haan', 'han', 'ha', 'ji', 'sahi', 'theek', 'thik', 'हाँ', 'हां', 'हा', 'जी', 'सही', 'ठीक', 'ओके']);
+const NO_WORDS = new Set(['no', 'nope', 'not', 'wrong', 'incorrect', 'change', 'edit',
+  'nahi', 'nahin', 'na', 'galat', 'badlo', 'badlen', 'नहीं', 'नही', 'ना', 'गलत', 'बदलें', 'बदलो', 'बदल']);
+
+// Words of a spoken reply: lower case, punctuation removed (Devanagari vowel signs are kept).
+const wordsOf = (text) => String(text || '').toLowerCase()
+  .replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
+
+// true = yes, false = no, null = not clear.
+function yesNo(text) {
+  const words = wordsOf(text);
+  if (words.some((w) => NO_WORDS.has(w))) return false;
+  if (words.some((w) => YES_WORDS.has(w))) return true;
+  return null;
+}
+
+// Spoken commands while answering: 'stop', 'repeat', 'back', 'skip', or null for an answer.
+function voiceCommand(text) {
+  const w = wordsOf(text).join(' ');
+  if (/\b(stop|pause|band karo)\b|रुको|बंद करो/.test(w)) return 'stop';
+  if (/\b(repeat|again|say again|dobara)\b|दोहराओ|दोहराएँ|फिर से/.test(w)) return 'repeat';
+  if (/\b(back|previous|go back)\b|पीछे/.test(w)) return 'back';
+  if (/\b(skip|next question)\b|छोड़ो|छोड़ें/.test(w)) return 'skip';
+  return null;
+}
+
 const state = {
   form: null,
   idx: 0,
   answers: {},
   pending: null,        // { value, raw } waiting for confirmation (FR4)
   autoRead: true,
-  shortcuts: true,
   micOK: false,
   listening: false,
   saveOn: false,
@@ -81,19 +152,16 @@ function loadPrefs() {
     autoRead: true,
     contrast: window.matchMedia('(prefers-contrast: more)').matches,
     large: false,
-    shortcuts: true,
     ...saved,
   };
   setLang(state.prefs.lang);
   state.autoRead = state.prefs.autoRead;
-  state.shortcuts = state.prefs.shortcuts;
   document.body.classList.toggle('hc', !!state.prefs.contrast);
   document.documentElement.classList.toggle('large', !!state.prefs.large);
 }
 
 function savePrefs() {
   state.prefs.autoRead = state.autoRead;
-  state.prefs.shortcuts = state.shortcuts;
   state.prefs.contrast = document.body.classList.contains('hc');
   state.prefs.large = document.documentElement.classList.contains('large');
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs)); } catch { /* ignore */ }
@@ -104,7 +172,6 @@ function updateToggles() {
   set('#btnAutoRead', state.autoRead);
   set('#btnContrast', document.body.classList.contains('hc'));
   set('#btnLarge', document.documentElement.classList.contains('large'));
-  set('#btnShortcuts', state.shortcuts);
   $$('[data-lang-btn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.langBtn === L())));
 }
 
@@ -153,6 +220,7 @@ function startForm(form) {
   state.saveOn = $('#saveProgress').checked;
   $('#formTitle').textContent = form.title[L()] || form.title.en;
   show('flow');
+  offerVoice();   // starts first, so the question is not read aloud twice
   askQuestion();
 }
 
@@ -168,15 +236,36 @@ function onResume() {
   $('#saveProgress').checked = true;
   $('#formTitle').textContent = s.form.title[L()] || s.form.title.en;
   show('flow');
+  offerVoice();
   askQuestion();
 }
 
 // ---------- Guided flow (FR1, FR2, FR3, FR7) ----------
-function askQuestion(prefill) {
+// Google Forms only: show the real form inside the app, filled with the answers confirmed so far.
+// It reloads only when those answers change. Nothing is submitted.
+function renderFormPanel() {
+  const panel = $('#formPanel');
+  const built = state.form && state.form.sourceUrl ? buildFormUrl(state.form, state.answers, { embedded: true }) : null;
+  panel.hidden = !built;
+  if (!built) return;
+  const frame = $('#formPreview');
+  if (frame.dataset.url !== built.url) { frame.dataset.url = built.url; frame.src = built.url; }
+}
+
+let askToken = 0;
+async function askQuestion(prefill) {
+  const token = ++askToken;
+  let hindiFailed = false;
+  if (L() === 'hi' && state.form) {
+    try { await ensureHindi(state.form); }
+    catch { hindiFailed = true; showToast(t('hiUnavailable')); }
+    if (token !== askToken) return;
+  }
   const f = current();
   const n = state.form.fields.length;
   const lang = L();
   state.pending = null;
+  renderFormPanel();
   $('#readback').hidden = true;
   $('#answerArea').hidden = false;
 
@@ -193,7 +282,7 @@ function askQuestion(prefill) {
   $('#qHint').textContent = f.hint ? (f.hint[lang] || f.hint.en || '') : '';
   $('#flagNote').hidden = !f.flag;
   $('#flagNote').textContent = f.flag ? t('flagged') : '';
-  $('#fieldError').textContent = '';
+  $('#fieldError').textContent = hindiFailed ? t('hiUnavailable') : '';
 
   const value = prefill ?? fieldPrefill(f, state.answers[f.id]);
   const isSel = f.type === 'select';
@@ -211,7 +300,7 @@ function askQuestion(prefill) {
     inp.placeholder = f.type === 'date' ? 'dd/mm/yyyy' : '';
   }
 
-  if (state.autoRead) readQuestion();
+  if (state.autoRead && !voice.on && !voice.offering) readQuestion();
   $('#qTitle').focus();
 }
 
@@ -236,24 +325,94 @@ function renderOptions(f, lang) {
   });
 }
 
-function readQuestion() {
-  const f = current();
-  const lang = f.lang || L();
+// Position words for choices read aloud: "First option: …", "Second option: …".
+const ORDINAL_SAY = {
+  en: ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'],
+  hi: ['पहला', 'दूसरा', 'तीसरा', 'चौथा', 'पाँचवाँ', 'छठा', 'सातवाँ', 'आठवाँ', 'नौवाँ', 'दसवाँ'],
+};
+// Words a person may say to pick the choice in that position (lower case, as wordsOf returns them).
+const ORDINAL_WORDS = [
+  ['first', '1st', 'one', '1', 'pehla', 'pahla', 'पहला', 'पहले', 'एक'],
+  ['second', '2nd', 'two', '2', 'doosra', 'dusra', 'दूसरा', 'दूसरे', 'दो'],
+  ['third', '3rd', 'three', '3', 'teesra', 'तीसरा', 'तीसरे', 'तीन'],
+  ['fourth', '4th', 'four', '4', 'chautha', 'चौथा', 'चौथे', 'चार'],
+  ['fifth', '5th', 'five', '5', 'paanchwan', 'panchwan', 'पाँचवाँ', 'पांचवां', 'पाँच'],
+  ['sixth', '6th', 'six', '6', 'chhatha', 'छठा', 'छठे', 'छह', 'छः'],
+  ['seventh', '7th', 'seven', '7', 'satwan', 'सातवाँ', 'सातवां', 'सात'],
+  ['eighth', '8th', 'eight', '8', 'aathwan', 'आठवाँ', 'आठवां', 'आठ'],
+  ['ninth', '9th', 'nine', '9', 'nauwan', 'नौवाँ', 'नौवां', 'नौ'],
+  ['tenth', '10th', 'ten', '10', 'dasvan', 'दसवाँ', 'दसवां', 'दस'],
+];
+
+function questionText(f) {
+  const lang = L();
   let text = `${labelFor(f, lang)}.`;
   const hint = f.hint && (f.hint[lang] || f.hint.en);
   if (hint) text += ` ${hint}`;
   if (f.type === 'select') {
-    text += ` ${t('optionsSay')} ${f.options.map((o, i) => `${i + 1}. ${o[lang] || o.en || o.v}`).join('. ')}.`;
+    const names = ORDINAL_SAY[lang] || ORDINAL_SAY.en;
+    const list = f.options.map((o, i) =>
+      `${names[i] || String(i + 1)} ${t('optionWord')}: ${o[lang] || o.en || o.v}.`);
+    text += ` ${t('optionsSay')} ${list.join(' ')} ${t('sayOption')}`;
   }
-  speakText(text, lang);
+  return text;
+}
+
+// The choice the person named: by its words, or by its position ("first", "2nd", "दूसरा").
+// Returns { v, label } or null.
+function pickOption(f, heard, lang) {
+  // Devanagari digits to ASCII, so "२" works like "2".
+  const digits = heard.replace(/[०-९]/g, (d) => String('०१२३४५६७८९'.indexOf(d)));
+  const spoken = ` ${wordsOf(digits).join(' ')} `;
+  for (const o of f.options) {
+    const label = o[lang] || o.en || o.v;
+    const words = wordsOf(label).join(' ');
+    if (words && spoken.includes(` ${words} `)) return { v: o.v, label };
+  }
+  for (let i = 0; i < f.options.length && i < ORDINAL_WORDS.length; i++) {
+    if (ORDINAL_WORDS[i].some((w) => spoken.includes(` ${w} `))) {
+      const o = f.options[i];
+      return { v: o.v, label: o[lang] || o.en || o.v };
+    }
+  }
+  return null;
+}
+
+// Every answer, for reading aloud on the final preview (sensitive answers are not read out).
+function readAllText() {
+  const lang = L();
+  return state.form.fields
+    .filter((f) => hasAnswer(f) && f.type !== 'sensitive')
+    .map((f) => `${labelFor(f, lang)}: ${displayValue(f, state.answers[f.id], lang)}.`)
+    .join(' ');
+}
+
+function readQuestion() {
+  speakText(questionText(current()), L());
+}
+
+// Checks an answer for the current question. Returns { res, text }; res.valid says whether it is accepted.
+async function checkAnswer(f, raw) {
+  const text = cleanAnswer(raw);
+  const hindiWords = L() === 'hi' && f.type !== 'sensitive' && HINDI_WORD_RE.test(text);
+  let res;
+  try {
+    if (hindiWords && f.type !== 'select') {
+      res = normalize(f, await toEnglish(text));
+    } else {
+      // Server check is off by default (answers stay on the device); see SERVER_VALIDATION in api.js.
+      res = (await serverValidate(f, text)) || normalize(f, text);
+      if (!res.valid && hindiWords) res = normalize(f, await toEnglish(text));
+    }
+  } catch { res = { valid: false, err: 'hiUnavailable' }; }
+  return { res, text };
 }
 
 async function submitRaw(raw) {
   const f = current();
-  // Server check is off by default (answers stay on the device); see SERVER_VALIDATION in api.js.
-  const res = (await serverValidate(f, raw)) || normalize(f, raw);
+  const { res, text } = await checkAnswer(f, raw);
   if (!res.valid) return fail(t(res.err));
-  state.pending = { value: res.value, raw: String(raw).trim() };
+  state.pending = { value: res.value, raw: text };
   showReadback();
 }
 
@@ -271,11 +430,22 @@ function showReadback() {
   $('#readback').hidden = false;
   $('#rbValue').textContent = displayValue(f, state.pending.value, L()) || t('skipped');
   $('#rbQ').textContent = t('readbackQ');
+  // Hindi answer: show what was said, and the value that is saved in the form's language.
+  const said = state.pending.raw;
+  const formValue = displayValue(f, state.pending.value, 'en');
+  const differs = displayValue(f, state.pending.value, L()) !== formValue;
+  const saidHindi = HINDI_WORD_RE.test(said) && f.type !== 'sensitive';
+  $('#rbSaid').hidden = !saidHindi;
+  $('#rbSaid').textContent = saidHindi ? `${t('youSaid')}: ${said}` : '';
+  const showNote = f.type !== 'sensitive' && (saidHindi || differs) && !!state.pending.value;
+  $('#rbNote').hidden = !showNote;
+  $('#rbNote').textContent = showNote ? `${t('formLangNote')} ${formValue}` : '';
   $('#rbValue').focus();
   readbackSpeak();
 }
 
 function readbackSpeak() {
+  if (voice.on) return;   // the voice loop reads the answer back itself
   const f = current();
   const shown = displayValue(f, state.pending?.value, L()) || t('skipped');
   speakText(`${t('youSaid')}: ${shown}. ${t('readbackQ')}`);
@@ -292,9 +462,9 @@ function confirmAnswer() {
     state.returnToReview = false;
     state.idx = state.form.fields.length - 1;
     goReview();
-  } else {
-    askQuestion();
+    return null;
   }
+  return askQuestion();
 }
 
 function editAnswer() {
@@ -304,7 +474,13 @@ function editAnswer() {
 }
 
 function goBack() {
-  if (state.idx === 0) return;
+  if (state.idx === 0) {
+    // On the first question, Back returns to the screen the form came from.
+    const pasted = state.form?.id === 'custom';
+    show(pasted ? 'paste' : 'start');
+    if (!pasted) renderResume();
+    return;
+  }
   state.idx--;
   askQuestion();
 }
@@ -352,16 +528,190 @@ function setMic(on) {
 
 // ---------- Keyboard shortcuts (spec section 9) ----------
 function onKey(e) {
-  if (!state.shortcuts || document.querySelector('dialog[open]')) return;
+  if (document.querySelector('dialog[open]')) return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(e.target.tagName)) return;
   const inFlow = visibleScreen() === 'flow';
+  if (inFlow && (voice.on || voice.offering) && ['Space', 'KeyR', 'KeyE', 'Enter'].includes(e.code)) stopVoice();
   const rb = !$('#readback').hidden;
   const key = e.key.toLowerCase();
   if (e.code === 'Space' && inFlow && !rb) { e.preventDefault(); onMic(); }
   else if (key === 'r' && inFlow) repeat();
   else if (e.key === 'Enter' && inFlow && rb) confirmAnswer();
   else if (key === 'e' && inFlow && rb) editAnswer();
+}
+
+// ---------- Hands-free voice mode ----------
+function setVoiceStatus(text) {
+  $('#voiceStatus').textContent = text;
+}
+
+function updateVoiceUI() {
+  const on = voice.on || voice.offering;
+  $('#btnVoice').setAttribute('aria-pressed', String(on));
+  $('#btnVoice').textContent = on ? t('voiceToggleOn') : t('voiceToggleOff');
+  setVoiceStatus(on ? t('voiceOnStatus') : t('voiceOffStatus'));
+}
+
+// Ends the voice mode at once: stops speaking and listening, and any loop still waiting exits.
+function stopVoice() {
+  voice.run++;
+  voice.on = false;
+  voice.offering = false;
+  stopListening();
+  window.speechSynthesis?.cancel?.();
+  updateVoiceUI();
+}
+
+// Speaks a text and resolves when it has been spoken (or after a safe time limit).
+function sayAndWait(text, lang = L()) {
+  return new Promise((resolve) => {
+    if (!speechOutputSupported) return resolve();
+    const limit = setTimeout(resolve, Math.max(4000, text.length * 120));
+    setVoiceStatus(t('voiceSpeaking'));
+    speak(text, lang, { onEnd: () => { clearTimeout(limit); resolve(); } });
+  });
+}
+
+// Listens for one spoken reply. Resolves with the text, or '' when nothing was heard in time.
+async function listenFor(token, ms = 12000) {
+  if (!speechInputSupported) return '';
+  setVoiceStatus(t('voiceListening'));
+  let timer;
+  let blocked = false;
+  try {
+    const heard = await Promise.race([
+      listen(L()).then((r) => r.text).catch((err) => {
+        // No microphone or no permission: stop, rather than repeating "I did not hear" forever.
+        if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(err?.code)) blocked = true;
+        return '';
+      }),
+      new Promise((resolve) => { timer = setTimeout(() => { stopListening(); resolve(''); }, ms); }),
+    ]);
+    if (blocked && token === voice.run) { stopVoice(); showToast(t('micDenied')); return ''; }
+    return token === voice.run ? heard : '';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// At the start of a form: ask, by voice, whether to use hands-free mode. Yes or no is spoken.
+async function offerVoice() {
+  if (!speechInputSupported || !speechOutputSupported) return;
+  const token = ++voice.run;
+  voice.offering = true;
+  updateVoiceUI();
+  try {
+    for (let tries = 0; tries < 2 && token === voice.run; tries++) {
+      await sayAndWait(t('askVoice'));
+      const answer = yesNo(await listenFor(token, 9000));
+      if (token !== voice.run) return;
+      if (answer === true) {
+        voice.offering = false;
+        state.micOK = true;   // a spoken yes is the consent to listen
+        return runVoice(token);
+      }
+      if (answer === false) break;
+    }
+    if (token !== voice.run) return;
+    voice.offering = false;
+    updateVoiceUI();
+    await sayAndWait(t('voiceOffSaid'));
+    if (state.autoRead && visibleScreen() === 'flow') readQuestion();
+  } finally {
+    if (token === voice.run) { voice.offering = false; updateVoiceUI(); }
+  }
+}
+
+// Started by the Hands-free button.
+function startVoice() {
+  if (!speechInputSupported || !speechOutputSupported) return;
+  state.micOK = true;
+  runVoice(++voice.run);
+}
+
+// The whole form, by voice: question, answer, read-back, yes or no, next question.
+async function runVoice(token) {
+  voice.on = true;
+  updateVoiceUI();
+  while (token === voice.run && visibleScreen() === 'flow') {
+    await askQuestion();
+    if (token !== voice.run) return;
+    const f = current();
+    await sayAndWait(questionText(f));
+    if (token !== voice.run) return;
+
+    const heard = await listenFor(token, 15000);
+    if (token !== voice.run) return;
+    if (!heard) { await sayAndWait(t('voiceNotHeard')); continue; }
+
+    const command = voiceCommand(heard);
+    if (command === 'stop') { stopVoice(); await sayAndWait(t('voiceStopped')); return; }
+    if (command === 'repeat') continue;
+    if (command === 'back') { if (state.idx > 0) state.idx--; continue; }
+    if (command === 'skip') {
+      if (f.required) { await sayAndWait(t('voiceRequired')); continue; }
+      state.idx++;
+      if (state.idx >= state.form.fields.length) { state.idx = state.form.fields.length - 1; goReview(); break; }
+      continue;
+    }
+
+    // A choice is picked by name or position and selected at once: no yes or no for choices.
+    if (f.type === 'select') {
+      const picked = pickOption(f, heard, L());
+      if (!picked) { await sayAndWait(t('voiceNotOption')); continue; }
+      state.pending = { value: picked.v, raw: picked.label };
+      await sayAndWait(`${t('voiceSelected')} ${picked.label}.`);
+      if (token !== voice.run) return;
+      await confirmAnswer();
+      continue;
+    }
+
+    const { res, text } = await checkAnswer(f, heard);
+    if (token !== voice.run) return;
+    if (!res.valid) { await sayAndWait(`${t(res.err)} ${t('voiceTryAgain')}`); continue; }
+
+    state.pending = { value: res.value, raw: text };
+    showReadback();
+    let decision = null;
+    for (let tries = 0; tries < 3 && decision === null && token === voice.run; tries++) {
+      const shown = displayValue(f, res.value, L()) || t('skipped');
+      await sayAndWait(`${t('youSaid')}: ${shown}. ${t('readbackQ')} ${t('sayYesNo')}`);
+      if (token !== voice.run) return;
+      const reply = await listenFor(token, 10000);
+      if (token !== voice.run) return;
+      if (voiceCommand(reply) === 'repeat') continue;
+      decision = yesNo(reply);
+    }
+    if (token !== voice.run) return;
+    if (decision === true) {
+      await confirmAnswer();
+    } else {
+      state.pending = null;
+      await askQuestion(decision === false ? text : undefined);
+    }
+  }
+  if (token !== voice.run) return;
+
+  // All questions answered: ask whether to read all the answers aloud, then open the
+  // completed form and ask the person to check it and submit it themselves.
+  if (visibleScreen() === 'review') {
+    let readAll = null;
+    for (let tries = 0; tries < 2 && readAll === null && token === voice.run; tries++) {
+      await sayAndWait(t('voiceReadAllPrompt'));
+      readAll = yesNo(await listenFor(token, 12000));
+      if (token !== voice.run) return;
+    }
+    if (readAll === null) {
+      stopVoice();
+      await sayAndWait(t('voiceStayReview'));
+      return;
+    }
+    stopVoice();
+    if (readAll) await sayAndWait(`${t('voiceReadAllIntro')} ${readAllText()}`);
+    onFinish();
+    await sayAndWait(t('voiceDone'));
+  }
 }
 
 // ---------- Review (F8, FR8) ----------
@@ -409,16 +759,21 @@ function onReviewEdit(e) {
   askQuestion();
 }
 
-// Google Forms only: offer to open the real form with the confirmed answers filled in.
+// Google Forms only: the real form, with the confirmed answers filled in, shown inside the app.
+// "Open in a new tab" is kept as a fallback. Nothing is submitted.
 let fillUrl = null;
 function renderFill() {
-  const fill = state.form && state.form.sourceUrl ? buildPrefillUrl(state.form, state.answers) : null;
-  fillUrl = fill ? fill.url : null;
+  const fill = state.form && state.form.sourceUrl ? buildFormUrl(state.form, state.answers, { embedded: true }) : null;
+  fillUrl = fill ? buildFormUrl(state.form, state.answers).url : null;
   $('#btnOpenForm').hidden = !fill;
   $('#fillNote').hidden = !fill;
+  $('#donePanel').hidden = !fill;
   // The usual line says "type these values yourself", which is wrong when we can fill the form.
   $('#screen-done [data-i18n="doneSub"]').textContent = t(fill ? 'doneSubFill' : 'doneSub');
-  if (fill) $('#fillNote').textContent = t('fillNote', fill.filled) + (fill.left ? ` ${t('fillLeft', fill.left)}` : '');
+  if (!fill) return;
+  $('#fillNote').textContent = t('fillNote', fill.filled) + (fill.left ? ` ${t('fillLeft', fill.left)}` : '');
+  const frame = $('#doneFrame');
+  if (frame.dataset.url !== fill.url) { frame.dataset.url = fill.url; frame.src = fill.url; }
 }
 function openFilledForm() {
   if (fillUrl) window.open(fillUrl, '_blank', 'noopener,noreferrer');
@@ -471,38 +826,7 @@ async function copyAnswers() {
   }
 }
 
-// ---------- Paste a form link (checked here, questions copied by the user) ----------
-async function onLinkSubmit(e) {
-  e.preventDefault();
-  const msg = $('#linkMsg');
-  const panel = $('#linkPanel');
-  const raw = $('#formLink').value.trim();
-  let url;
-  try { url = new URL(raw); } catch { url = null; }
-  if (!url) {
-    msg.textContent = t('linkInvalid');
-    panel.hidden = true;
-    return;
-  }
-  if (url.protocol !== 'https:') {
-    msg.textContent = t('linkHttps');
-    panel.hidden = true;
-    return;
-  }
-  $('#linkOpen').href = url.href;
-  panel.hidden = false;
-
-  // With the server running, it visits the link and reads the questions for us.
-  msg.textContent = t('linkReading');
-  const r = await serverParseUrl(url.href);
-  if (r.offline) { msg.textContent = t('linkOk'); return; }
-  if (!r.ok) { msg.textContent = t(LINK_ERRORS[r.code] || 'linkFetchFailed'); return; }
-
-  msg.textContent = t('linkFound', r.fields.length);
-  startForm({ id: 'link', title: r.title, fields: r.fields, sourceUrl: r.sourceUrl });
-  if (r.flagged) showToast(t('flagCount', r.flagged));
-}
-
+// ---------- Paste a form link (the server reads its questions) ----------
 const LINK_ERRORS = {
   blocked: 'linkBlocked',
   needs_signin: 'linkNeedsSignin',
@@ -511,6 +835,28 @@ const LINK_ERRORS = {
   too_large: 'linkNoQuestions',
   fetch_failed: 'linkFetchFailed',
 };
+
+// Works for Google Forms and ordinary public HTML forms. The questions then run through the
+// same guided flow as pasted text: every answer is checked, read back, and saved only after
+// the user confirms it. Google Forms gets a pre-filled link on the last screen.
+async function onLinkSubmit(e) {
+  e.preventDefault();
+  const msg = $('#linkMsg');
+  const raw = $('#formLink').value.trim();
+  let url = null;
+  try { url = new URL(raw); } catch { /* not a link */ }
+  if (!url) { msg.textContent = t('linkInvalid'); return; }
+  if (url.protocol !== 'https:') { msg.textContent = t('linkHttps'); return; }
+
+  msg.textContent = t('linkReading');
+  const r = await serverParseUrl(url.href);
+  if (r.offline) { msg.textContent = t('linkOffline'); return; }
+  if (!r.ok) { msg.textContent = `${t(LINK_ERRORS[r.code] || 'linkFetchFailed')} ${t('linkFallback')}`; return; }
+
+  msg.textContent = t('linkFound', r.fields.length);
+  startForm({ id: 'link', title: r.title, fields: r.fields, sourceUrl: r.sourceUrl });
+  if (r.flagged) showToast(t('flagCount', r.flagged));
+}
 
 // ---------- Paste & upload (F1) ----------
 async function onPasteSubmit(e) {
@@ -595,9 +941,12 @@ function confetti() {
 }
 
 // ---------- Language switch without losing answers (FR9) ----------
-function switchLang(code) {
+async function switchLang(code) {
   const f = state.form && current();
   const typed = f && f.type === 'select' ? $('#answerSelect').value : $('#answerInput').value;
+  if (code === 'hi' && state.form) {
+    try { await ensureHindi(state.form); } catch { /* shown below */ }
+  }
   setLang(code);
   state.prefs.lang = code;
   savePrefs();
@@ -630,7 +979,6 @@ function bind() {
   $('#btnAutoRead').addEventListener('click', () => { state.autoRead = !state.autoRead; savePrefs(); updateToggles(); });
   $('#btnContrast').addEventListener('click', () => { document.body.classList.toggle('hc'); savePrefs(); updateToggles(); });
   $('#btnLarge').addEventListener('click', () => { document.documentElement.classList.toggle('large'); savePrefs(); updateToggles(); });
-  $('#btnShortcuts').addEventListener('click', () => { state.shortcuts = !state.shortcuts; savePrefs(); updateToggles(); });
   $('#btnHelp').addEventListener('click', () => openDlg('helpDlg'));
   $$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
   $('#consentAgree').addEventListener('click', () => {
@@ -640,7 +988,6 @@ function bind() {
   });
 
   $('#linkForm').addEventListener('submit', onLinkSubmit);
-  $('#btnSignIn').addEventListener('click', () => openDlg('signDlg'));
   $('#btnStoreDelete').addEventListener('click', () => { clearSaved(); renderResume(); showToast(t('deleted')); });
   $('#saveProgress').addEventListener('change', (e) => {
     if (!e.target.checked) { clearSaved(); renderResume(); }
@@ -653,6 +1000,17 @@ function bind() {
 
   $('#btnMic').addEventListener('click', onMic);
   $('#btnListenQ').addEventListener('click', readQuestion);
+  $('#btnVoice').addEventListener('click', () => {
+    if (voice.on || voice.offering) stopVoice();
+    else startVoice();
+  });
+  // Any answer control used by hand takes over from the voice mode.
+  $('#screen-flow').addEventListener('click', (e) => {
+    if ((voice.on || voice.offering) && e.target.closest('#btnConfirm, #btnEdit, #btnBack, #btnMic, #btnRepeat, #btnListenQ, #optionGrid')) stopVoice();
+  }, true);
+  $('#answerInput').addEventListener('keydown', (e) => {
+    if ((voice.on || voice.offering) && e.key === 'Enter') stopVoice();
+  });
   $('#answerForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const f = current();
@@ -689,6 +1047,7 @@ function init() {
   loadPrefs();
   applyStatic();
   updateToggles();
+  updateVoiceUI();
   renderResume();
   bind();
   // Let the user know when the optional server is connected. Silent if it is off.
@@ -696,3 +1055,10 @@ function init() {
 }
 
 init();
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js")
+            .then(() => console.log("AwaazForm PWA registered"))
+            .catch(error => console.error("PWA registration failed:", error));
+    });
+}

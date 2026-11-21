@@ -52,8 +52,18 @@ def _match_option(options: list[Option], raw: str) -> Option | None:
     return None
 
 
+_NOISE = re.compile(r'[|।?!"“”„]+')
+
+
+def clean_answer(raw) -> str:
+    """Same rule as cleanAnswer() in js/data.js: remove symbols that speech and translation add."""
+    s = _NOISE.sub(" ", str(raw or ""))
+    s = re.sub(r"\s+", " ", s)
+    return re.sub(r"^[\s.,;:]+|[\s.,;:]+$", "", s)
+
+
 def normalize(field: FormField, raw: str | None) -> tuple[bool, str | None, str | None]:
-    v = str(raw or "").strip()
+    v = clean_answer(raw)
 
     if field.type == "select":
         if not v:

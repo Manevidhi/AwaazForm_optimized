@@ -4,8 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com http://localhost:8001 http://127.0.0.1:8001; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://cdnjs.cloudflare.com http://localhost:8001 http://127.0.0.1:8001; frame-src https://docs.google.com https://forms.google.com; object-src 'none'; base-uri 'none'">
   <title>AwaazForm – Voice-guided forms</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -34,9 +37,7 @@
       <button type="button" class="tool" id="btnAutoRead" aria-pressed="true">🔊 <span data-i18n="autoRead"></span></button>
       <button type="button" class="tool" id="btnContrast" aria-pressed="false">🌓 <span data-i18n="contrast"></span></button>
       <button type="button" class="tool" id="btnLarge" aria-pressed="false">🔠 <span data-i18n="largeText"></span></button>
-      <button type="button" class="tool" id="btnShortcuts" aria-pressed="true">⌨️ <span data-i18n="shortcuts"></span></button>
       <button type="button" class="tool" id="btnHelp">❓ <span data-i18n="help"></span></button>
-      <button type="button" class="btn small" id="btnSignIn" data-i18n="signIn"></button>
     </div>
   </header>
 
@@ -114,12 +115,13 @@
             <button type="submit" class="btn primary" data-i18n="linkCheck"></button>
           </div>
           <p id="linkMsg" class="link-msg" role="status"></p>
-          <div id="linkPanel" class="link-panel" hidden>
-            <a id="linkOpen" class="btn" href="#" target="_blank" rel="noopener noreferrer" data-i18n="linkOpen"></a>
-            <button type="button" class="btn ghost" data-go="paste" data-i18n="linkNext"></button>
-          </div>
           <p class="note" data-i18n="linkNote"></p>
         </form>
+
+        <div class="extension-callout">
+          <div><strong>Want to fill the original Google Form directly?</strong><p class="note">Install the AwaazForm Chrome extension, open your Google Form in Chrome, then open the AwaazForm side panel from the Extensions toolbar. The original form stays on screen while the assistant reads and fills it.</p></div>
+          <a class="btn primary" href="extension/README.md" target="_blank" rel="noopener">Extension setup guide</a>
+        </div>
 
         <div class="card-grid">
           <button type="button" class="choice-card c1" data-sample="scholar">
@@ -227,11 +229,21 @@
         <p id="formTitle" class="form-name"></p>
         <p id="qCount" class="qcount"></p>
       </div>
+      <div class="voice-bar">
+        <button type="button" id="btnVoice" class="btn small" aria-pressed="false"></button>
+        <p id="voiceStatus" class="note" role="status" aria-live="polite"></p>
+      </div>
       <div class="progress" id="progressBar" role="progressbar" aria-label="Form progress" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
         <div id="progressFill"></div>
       </div>
       <div id="dots" class="dots" aria-hidden="true"></div>
 
+      <div class="flow-layout">
+      <aside id="formPanel" class="form-panel" aria-labelledby="formPanelTitle" hidden>
+        <div class="workspace-heading"><strong id="formPanelTitle" data-i18n="formPanelTitle"></strong><span class="workspace-status" data-i18n="formPanelStatus"></span></div>
+        <iframe id="formPreview" title="Google Form with your confirmed answers" referrerpolicy="no-referrer"></iframe>
+        <p class="workspace-note" data-i18n="formPanelNote"></p>
+      </aside>
       <article class="question-card">
         <h2 id="qTitle" tabindex="-1"></h2>
         <p><span id="qReq" class="badge"></span></p>
@@ -271,7 +283,9 @@
 
         <div id="readback" class="readback" hidden>
           <p class="rb-title" data-i18n="readbackTitle"></p>
+          <p id="rbSaid" class="rb-q" hidden></p>
           <p id="rbValue" class="rb-value" tabindex="-1"></p>
+          <p id="rbNote" class="rb-q" hidden></p>
           <p id="rbQ" class="rb-q"></p>
           <div class="row big">
             <button type="button" id="btnConfirm" class="btn primary big" data-i18n="confirm"></button>
@@ -280,6 +294,7 @@
           </div>
         </div>
       </article>
+      </div>
     </section>
 
     <!-- SCREEN 4: REVIEW -->
@@ -301,6 +316,10 @@
       <h2 tabindex="-1" data-i18n="doneTitle"></h2>
       <p class="note" data-i18n="doneSub"></p>
       <p id="fillNote" class="note" role="status" hidden></p>
+      <aside id="donePanel" class="form-panel done-panel" aria-labelledby="donePanelTitle" hidden>
+        <div class="workspace-heading"><strong id="donePanelTitle" data-i18n="formPanelTitle"></strong><span class="workspace-status" data-i18n="donePanelStatus"></span></div>
+        <iframe id="doneFrame" title="Google Form with your confirmed answers" referrerpolicy="no-referrer"></iframe>
+      </aside>
       <div class="row">
         <button type="button" id="btnOpenForm" class="btn primary big" hidden data-i18n="openFilled"></button>
         <button type="button" id="btnPdf" class="btn" data-i18n="exportPdf"></button>
@@ -352,12 +371,6 @@
     <p data-i18n="helpBody"></p>
     <p data-i18n="shortcutsList"></p>
     <button type="button" class="btn primary" data-close data-i18n="close"></button>
-  </dialog>
-
-  <dialog id="signDlg" aria-labelledby="signTitle">
-    <h2 id="signTitle" data-i18n="signTitle"></h2>
-    <p data-i18n="signBody"></p>
-    <button type="button" class="btn primary" data-close data-i18n="signContinue"></button>
   </dialog>
 
   <div id="confetti" class="confetti" aria-hidden="true"></div>

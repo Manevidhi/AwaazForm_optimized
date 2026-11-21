@@ -19,23 +19,23 @@ i18n = wrap_module(f'{base}/js/i18n.js', 'I18N',
 data = wrap_module(f'{base}/js/data.js', 'DATA',
                    ['STORAGE_KEY', 'PREFS_KEY', 'EXPIRY_MS', 'SAMPLE_FORMS', 'toAscii',
                     'toDev', 'labelFor', 'fieldPrefill', 'displayValue', 'normalize',
-                    'parseText', 'maskPII', 'buildPrefillUrl'])
+                    'parseText', 'maskPII', 'buildFormUrl', 'cleanAnswer'])
 speech = wrap_module(f'{base}/js/speech.js', 'SPEECH',
                      ['speechInputSupported', 'speechOutputSupported', 'listen',
                       'stopListening', 'speak'])
 
 api = wrap_module(f'{base}/js/api.js', 'API',
                   ['API_BASE', 'SERVER_VALIDATION', 'serverOnline', 'serverValidate',
-                   'serverParseText', 'serverExtractText', 'serverParseUrl'])
+                   'serverParseText', 'serverExtractText', 'serverParseUrl', 'serverTranslate'])
 
 app_src = open(f'{base}/js/app.js', encoding='utf-8').read()
 app_src = re.sub(r"^import[\s\S]*?from '[^']+';\s*$", '', app_src, flags=re.M)
 app_head = (
     "const { t, getLang, setLang, applyStatic } = I18N;\n"
     "const { SAMPLE_FORMS, parseText, normalize, labelFor, displayValue, fieldPrefill,\n"
-    "  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildPrefillUrl } = DATA;\n"
-    "const { listen, stopListening, speak, speechInputSupported } = SPEECH;\n"
-    "const { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl } = API;\n"
+    "  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildFormUrl, cleanAnswer } = DATA;\n"
+    "const { listen, stopListening, speak, speechInputSupported, speechOutputSupported } = SPEECH;\n"
+    "const { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl, serverTranslate } = API;\n"
 )
 script = i18n + data + speech + api + app_head + app_src
 

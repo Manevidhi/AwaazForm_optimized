@@ -95,3 +95,15 @@ export async function serverParseUrl(url) {
     clearTimeout(timer);
   }
 }
+
+// Translates a question, option or answer between English ('en') and Hindi ('hi') through the backend.
+// Returns the translated text, or null when the server or the translation service is unavailable.
+export async function serverTranslate(text, target) {
+  const r = await call('/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, target }),
+  }, 15000);
+  const out = typeof r?.translated === 'string' ? r.translated.trim() : '';
+  return out || null;
+}

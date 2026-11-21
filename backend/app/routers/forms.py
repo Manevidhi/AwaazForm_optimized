@@ -1,4 +1,8 @@
 import pymupdf  # PyMuPDF
+import json
+import urllib.parse
+import urllib.request
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from ..config import settings
@@ -94,3 +98,46 @@ def parse_form_url(req: ParseUrlRequest):
         source=source,
         source_url=final_url,
     )
+
+class TranslateRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+    target: str = "hi"
+
+
+@router.post("/translate")
+def translate_text(req: TranslateRequest):
+    """Translate a form question, option or answer between English and Hindi."""
+    target = "hi" if req.target.lower().startswith("hi") else "en"
+
+    query = urllib.parse.urlencode({
+        "client": "gtx",
+        "sl": "auto",
+        "tl": target,
+        "dt": "t",
+        "q": req.text
+    })
+
+    request = urllib.request.Request(
+        f"https://translate.googleapis.com/translate_a/single?{query}",
+        headers={"User-Agent": "Mozilla/5.0"},
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=12) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        translated = "".join(
+            part[0] for part in payload[0] if part and part[0]
+        ).strip()
+
+        if not translated:
+            raise ValueError("Empty translation")
+
+        return {"translated": translated}
+
+    except Exception as exc:
+        raise HTTPException(
+            502,
+            "Question translation is temporarily unavailable. Please try again."
+        ) from exc
+

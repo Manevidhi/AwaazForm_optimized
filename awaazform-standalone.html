@@ -5,374 +5,1544 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <title>AwaazForm – Voice-guided forms</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <style>
-/* ===== AwaazForm — dark, blue-accented, accessible ===== */
+/* ===== AwaazForm — clean white, purple-accented, accessible ===== */
+
 :root {
-  --bg: #060910;
-  --surface: #0d121c;
-  --surface-2: #131a27;
-  --line: #1d2535;
-  --line-2: #293349;
-  --ink: #e7ecf5;
-  --muted: #8d97ab;
-  --faint: #5d6679;
-  --accent: #38bdf8;
-  --accent-2: #818cf8;
-  --accent-soft: rgba(56, 189, 248, .12);
-  --warm: #fb923c;
-  --warm-soft: rgba(251, 146, 60, .12);
-  --ok: #34d399;
-  --ok-soft: rgba(52, 211, 153, .12);
-  --err: #f87171;
-  --err-soft: rgba(248, 113, 113, .12);
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f8f7fc;
+  --line: #eceaf2;
+  --line-2: #dedbe8;
+
+  --ink: #202124;
+  --muted: #626575;
+  --faint: #858595;
+
+  --accent: #7048e8;
+  --accent-2: #c477ee;
+  --accent-soft: rgba(112, 72, 232, .10);
+
+  --warm: #e99a38;
+  --warm-soft: rgba(233, 154, 56, .12);
+
+  --ok: #269b62;
+  --ok-soft: rgba(38, 155, 98, .11);
+
+  --err: #df5555;
+  --err-soft: rgba(223, 85, 85, .10);
+
   --radius: 16px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
 body.hc {
-  --bg: #000; --surface: #000; --surface-2: #111; --line: #fff; --line-2: #fff;
-  --ink: #fff; --muted: #fff; --faint: #ddd;
-  --accent: #ffd43b; --accent-2: #00e5ff; --accent-soft: #222;
-  --warm: #ffd43b; --warm-soft: #222; --ok: #7cfc00; --ok-soft: #111;
-  --err: #ff7b72; --err-soft: #111;
+  --bg: #000;
+  --surface: #000;
+  --surface-2: #111;
+  --line: #fff;
+  --line-2: #fff;
+  --ink: #fff;
+  --muted: #fff;
+  --faint: #ddd;
+  --accent: #ffd43b;
+  --accent-2: #00e5ff;
+  --accent-soft: #222;
+  --warm: #ffd43b;
+  --warm-soft: #222;
+  --ok: #7cfc00;
+  --ok-soft: #111;
+  --err: #ff7b72;
+  --err-soft: #111;
 }
 
 [hidden] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
-html { font-size: 18px; scroll-behavior: smooth; scroll-padding-top: 96px; }
+
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
 html.large { font-size: 21.6px; }
+
 body {
-  margin: 0; min-height: 100vh; color: var(--ink); background-color: var(--bg);
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background-color: var(--bg);
   font-family: "Segoe UI", "Nirmala UI", "Noto Sans Devanagari", system-ui, sans-serif;
-  line-height: 1.6; -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+
   background-image:
-    radial-gradient(900px 520px at 78% -12%, rgba(56, 189, 248, .16), transparent 62%),
-    radial-gradient(760px 520px at -6% 34%, rgba(129, 140, 248, .10), transparent 60%);
+    radial-gradient(900px 520px at 78% -12%, rgba(196, 119, 238, .12), transparent 62%),
+    radial-gradient(760px 520px at -6% 34%, rgba(112, 72, 232, .07), transparent 60%);
+
   background-attachment: fixed;
 }
+
 body.hc { background-image: none; }
-h1, h2, h3, h4 { line-height: 1.2; margin: 0 0 10px; letter-spacing: -.01em; }
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  margin: 0 0 10px;
+  letter-spacing: -.01em;
+}
+
 p { margin: 0 0 12px; }
-main { max-width: 1120px; margin: 0 auto; padding: 0 24px 40px; outline: none; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 body.hc :focus-visible { outline-color: #ffd43b; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.skip-link { position: absolute; left: -999px; top: 8px; z-index: 99; background: #fff; color: #000; padding: 10px 16px; border-radius: 10px; font-weight: 600; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  z-index: 99;
+  background: #fff;
+  color: #000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
 .skip-link:focus { left: 8px; }
 
 /* ---------- Top bar ---------- */
+
 .topbar {
-  position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
-  padding: 14px 28px; background: rgba(6, 9, 16, .82); backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
+
 body.hc .topbar { background: #000; }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-name { margin: 0; font-weight: 700; font-size: 1.1rem; letter-spacing: -.01em; }
-.tagline { margin: 0; font-size: .8rem; color: var(--muted); }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -.01em;
+}
+
+.tagline {
+  margin: 0;
+  font-size: .8rem;
+  color: var(--muted);
+}
+
 .owl {
-  width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 22px;
-  border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   animation: bob 3.2s ease-in-out infinite;
 }
+
 .owl.talking { animation: talk .35s ease-in-out infinite alternate; }
 .owl.happy { animation: jump .5s ease-in-out 2; }
-.owl-hero { width: 84px; height: 84px; font-size: 42px; margin: 0 auto 14px; border-radius: 24px; }
 
-.navlinks { display: flex; gap: 4px; margin-left: auto; }
-.navlinks a { color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 10px; font-size: .95rem; }
-.navlinks a:hover { color: var(--ink); background: var(--surface-2); }
-.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.lang-switch { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.owl-hero {
+  width: 84px;
+  height: 84px;
+  font-size: 42px;
+  margin: 0 auto 14px;
+  border-radius: 24px;
+}
+
+.navlinks {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.navlinks a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: .95rem;
+}
+
+.navlinks a:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lang-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
 .lang-switch button {
-  font: inherit; font-weight: 600; font-size: .9rem; min-height: 36px; padding: 4px 12px; border: 0; border-radius: 9px;
-  background: transparent; color: var(--muted); cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: .9rem;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
 }
-.lang-switch button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); }
+
+.lang-switch button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .tool {
-  font: inherit; font-size: .85rem; min-height: 36px; padding: 6px 11px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer;
+  font: inherit;
+  font-size: .85rem;
+  min-height: 36px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
 }
-.tool[aria-pressed="true"] { color: var(--accent); border-color: rgba(56, 189, 248, .4); background: var(--accent-soft); }
-body.hc .tool[aria-pressed="true"] { color: #000; background: #ffd43b; }
+
+.tool[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: rgba(112, 72, 232, .35);
+  background: var(--accent-soft);
+}
+
+body.hc .tool[aria-pressed="true"] {
+  color: #000;
+  background: #ffd43b;
+}
 
 /* ---------- Buttons ---------- */
+
 .btn {
-  font: inherit; font-weight: 600; min-height: 46px; padding: 10px 18px; border-radius: 12px;
-  border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); cursor: pointer;
-  text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: inherit;
+  font-weight: 600;
+  min-height: 46px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: transform .15s, border-color .15s, background .15s, box-shadow .15s;
 }
-.btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-.btn:active { transform: translateY(1px); }
-.btn.primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #04101a; border-color: transparent;
-  box-shadow: 0 8px 24px -10px rgba(56, 189, 248, .7);
+
+.btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
-body.hc .btn.primary { background: #ffd43b; color: #000; box-shadow: none; }
+
+.btn:active { transform: translateY(1px); }
+
+.btn.primary {
+  background: linear-gradient(135deg, #7048e8, #8d5bea);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 24px -10px rgba(112, 72, 232, .55);
+}
+
+body.hc .btn.primary {
+  background: #ffd43b;
+  color: #000;
+  box-shadow: none;
+}
+
 .btn.ghost { background: transparent; }
-.btn.big { font-size: 1.05rem; min-height: 54px; padding: 12px 24px; }
-.btn.small { min-height: 38px; padding: 6px 12px; font-size: .9rem; }
-.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
+
+.btn.big {
+  font-size: 1.05rem;
+  min-height: 54px;
+  padding: 12px 24px;
+}
+
+.btn.small {
+  min-height: 38px;
+  padding: 6px 12px;
+  font-size: .9rem;
+}
+
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 12px 0;
+}
+
 .row.big { justify-content: center; }
-.nav-row { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
 
 /* ---------- Hero ---------- */
-.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding: 72px 0 48px; }
-.eyebrow {
-  font-family: var(--mono); font-size: .78rem; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--accent); margin: 0 0 18px;
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 56px;
+  align-items: center;
+  padding: 72px 0 48px;
 }
-.hero-title { font-size: clamp(2.4rem, 5vw, 3.9rem); font-weight: 700; line-height: 1.04; letter-spacing: -.035em; margin: 0 0 20px; }
-.grad { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-body.hc .grad { background: none; color: #ffd43b; }
-.hero-sub { color: var(--muted); font-size: 1.08rem; max-width: 560px; margin-bottom: 28px; }
-.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
-.trust { margin: 18px 0 0; font-size: .88rem; color: var(--faint); }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .78rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 18px;
+}
+
+.hero-title {
+  font-size: clamp(2.4rem, 5vw, 3.9rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -.035em;
+  margin: 0 0 20px;
+}
+
+.grad {
+  background: linear-gradient(90deg, #b66be9, #d08aef);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.hc .grad {
+  background: none;
+  color: #ffd43b;
+}
+
+.hero-sub {
+  color: var(--muted);
+  font-size: 1.08rem;
+  max-width: 560px;
+  margin-bottom: 28px;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trust {
+  margin: 18px 0 0;
+  font-size: .88rem;
+  color: var(--faint);
+}
 
 .steps-panel {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px;
-  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: 0 30px 60px -30px rgba(112, 72, 232, .12);
 }
-.panel-label { font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; }
-.steps { list-style: none; margin: 0; padding: 0; }
-.steps li { display: grid; grid-template-columns: 44px 1fr; gap: 6px; padding: 16px 0; border-top: 1px solid var(--line); }
-.steps li:first-child { border-top: 0; padding-top: 4px; }
-.steps h3 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
-.steps p { margin: 0; color: var(--muted); font-size: .92rem; }
-.sn { font-family: var(--mono); color: var(--accent); font-size: .9rem; padding-top: 3px; }
+
+.panel-label {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0 0 14px;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 6px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.steps li:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.steps h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.steps p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.sn {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-size: .9rem;
+  padding-top: 3px;
+}
 
 /* ---------- Sections ---------- */
-.sect { padding: 56px 0; border-top: 1px solid var(--line); }
-.section-title { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 650; margin: 0 0 16px; }
-.split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+
+.sect {
+  padding: 56px 0;
+  border-top: 1px solid var(--line);
+}
+
+.section-title {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 650;
+  margin: 0 0 16px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
 .split p { color: var(--muted); }
-.note { color: var(--faint); font-size: .9rem; }
+
+.note {
+  color: var(--faint);
+  font-size: .9rem;
+}
 
 /* ---------- Demo ---------- */
+
 .demo {
-  overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: 0 40px 80px -40px rgba(56, 189, 248, .25);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 40px 80px -40px rgba(112, 72, 232, .22);
 }
-.demo-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
-.demo-bar > span { width: 9px; height: 9px; border-radius: 50%; background: var(--line-2); }
-.demo-bar em { font-style: normal; font-weight: 600; color: var(--ink); margin: 0 auto; }
-.demo-bar .verified { background: var(--ok-soft); color: var(--ok); padding: 2px 10px; border-radius: 99px; font-size: .8rem; font-weight: 600; }
-.demo-body { display: grid; grid-template-columns: 1.4fr 1fr; }
-.demo-form { padding: 18px; display: grid; gap: 10px; }
-.demo-field { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
-.demo-field small { display: block; color: var(--faint); font-size: .8rem; }
+
+.demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.demo-bar > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line-2);
+}
+
+.demo-bar em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 auto;
+}
+
+.demo-bar .verified {
+  background: var(--ok-soft);
+  color: var(--ok);
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.demo-body {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.demo-form {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.demo-field {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.demo-field small {
+  display: block;
+  color: var(--faint);
+  font-size: .8rem;
+}
+
 .demo-field strong { font-weight: 600; }
-.demo-field .tick { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--ok); font-weight: 700; }
-.demo-field.active { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-.demo-field .chip { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 3px 10px; font-size: .8rem; }
-.demo-say { background: var(--accent-soft); color: var(--ink); border: 1px solid rgba(56, 189, 248, .3); border-radius: 12px; padding: 12px 14px; font-family: var(--mono); font-size: .9rem; }
-.demo-log { padding: 18px 20px; border-left: 1px solid var(--line); background: var(--bg); }
-.demo-log .log { position: relative; margin: 0 0 14px; padding-left: 22px; color: var(--muted); font-size: .92rem; }
-.demo-log .log::before { content: ""; position: absolute; left: 0; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
-.demo-log .log.now { color: var(--ink); font-weight: 600; }
-.demo-log .log.now::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+.demo-field .tick {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.demo-field.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.demo-field .chip {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: .8rem;
+}
+
+.demo-say {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border: 1px solid rgba(112, 72, 232, .22);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: .9rem;
+}
+
+.demo-log {
+  padding: 18px 20px;
+  border-left: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.demo-log .log {
+  position: relative;
+  margin: 0 0 14px;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.demo-log .log::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.demo-log .log.now {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.demo-log .log.now::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
 
 /* ---------- Forms: link + cards ---------- */
-.link-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 0 0 18px; }
-.link-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 4px; }
-.link-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-.link-row .input { flex: 1 1 280px; width: auto; }
-.link-msg { min-height: 1.4em; color: var(--muted); font-size: .92rem; margin: 10px 0 0; }
-.link-panel { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin: 0 0 18px; }
-.choice-card {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; font: inherit; color: var(--ink);
-  padding: 22px; min-height: 180px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface);
-  cursor: pointer; transition: transform .2s, border-color .2s, background .2s;
+
+.link-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 0 0 18px;
 }
-.choice-card:hover { transform: translateY(-3px); border-color: var(--accent); background: var(--surface-2); }
-.big-emoji { display: grid; place-items: center; width: 50px; height: 50px; margin-bottom: 10px; border-radius: 14px; font-size: 24px; background: var(--accent-soft); }
+
+.link-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.link-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.link-row .input {
+  flex: 1 1 280px;
+  width: auto;
+}
+
+.link-msg {
+  min-height: 1.4em;
+  color: var(--muted);
+  font-size: .92rem;
+  margin: 10px 0 0;
+}
+
+.link-panel {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0 4px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin: 0 0 18px;
+}
+
+.choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  padding: 22px;
+  min-height: 180px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform .2s, border-color .2s, background .2s;
+}
+
+.choice-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.big-emoji {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  font-size: 24px;
+  background: var(--accent-soft);
+}
+
 .choice-card.c2 .big-emoji { background: var(--ok-soft); }
 .choice-card.c3 .big-emoji { background: var(--warm-soft); }
-.choice-card.c4 .big-emoji { background: rgba(129, 140, 248, .14); }
-.ct { font-weight: 600; font-size: 1.08rem; }
-.cd { color: var(--muted); font-size: .92rem; }
-.resume { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; background: var(--warm-soft); border: 1px solid rgba(251, 146, 60, .35); border-radius: var(--radius); padding: 16px 20px; margin: 0 0 18px; }
-.save-row { display: flex; gap: 10px; align-items: center; font-weight: 500; margin: 10px 0 2px; cursor: pointer; }
-input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+.choice-card.c4 .big-emoji { background: rgba(196, 119, 238, .14); }
+
+.ct {
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+
+.cd {
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.resume {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--warm-soft);
+  border: 1px solid rgba(233, 154, 56, .35);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 0 0 18px;
+}
+
+.save-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 500;
+  margin: 10px 0 2px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
 
 /* ---------- Platform & feature cards ---------- */
-.platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 28px; }
-.plat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-.plat h4 { font-size: 1.05rem; font-weight: 600; margin: 0 0 8px; }
-.plat p { color: var(--muted); font-size: .92rem; margin: 0; }
-.plat.more { border-style: dashed; background: transparent; }
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.plat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.plat h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.plat p {
+  color: var(--muted);
+  font-size: .92rem;
+  margin: 0;
+}
+
+.plat.more {
+  border-style: dashed;
+  background: transparent;
+}
+
 .plat.more h4 { color: var(--muted); }
-.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 0; }
-.fcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
-.fcard h3 { font-size: 1.25rem; font-weight: 600; }
-.fcard p { color: var(--muted); margin: 0; }
+
+.duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 0;
+}
+
+.fcard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+
+.fcard h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.fcard p {
+  color: var(--muted);
+  margin: 0;
+}
 
 /* ---------- Storage ---------- */
-.store-box { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
-.kv { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 22px; }
-.kv > div { padding: 14px 0; border-top: 1px solid var(--line); }
+
+.store-box {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.kv {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 22px;
+}
+
+.kv > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
 .kv > div:first-child { border-top: 0; }
-.kv dt { font-family: var(--mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 4px; }
-.kv dd { margin: 0; color: var(--ink); }
-.store-status { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
-#storeStatus { margin: 0; color: var(--muted); }
+
+.kv dt {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 4px;
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.store-status {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+#storeStatus {
+  margin: 0;
+  color: var(--muted);
+}
 
 /* ---------- FAQ ---------- */
-.faq { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 20px; margin-bottom: 10px; }
-.faq summary { cursor: pointer; list-style: none; padding: 16px 0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+.faq {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 20px;
+  margin-bottom: 10px;
+}
+
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 0;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: "+"; font-family: var(--mono); color: var(--accent); font-size: 1.2rem; }
+
+.faq summary::after {
+  content: "+";
+  font-family: var(--mono);
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
 .faq[open] summary::after { content: "–"; }
-.faq p { color: var(--muted); padding: 0 0 18px; margin: 0; }
+
+.faq p {
+  color: var(--muted);
+  padding: 0 0 18px;
+  margin: 0;
+}
 
 /* ---------- Footer ---------- */
-.foot { border-top: 1px solid var(--line); background: var(--bg); padding: 48px 24px 24px; }
-.foot-grid { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
-.foot h4 { font-size: .8rem; font-family: var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 0 0 12px; }
-.foot a { display: block; color: var(--muted); text-decoration: none; margin-bottom: 8px; font-size: .95rem; }
-.foot a:hover { color: var(--ink); }
-.foot-tag { color: var(--muted); font-size: .95rem; margin: 8px 0 0; }
-.foot-bottom { max-width: 1120px; margin: 36px auto 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--faint); font-size: .85rem; }
+
+.foot {
+  border-top: 1px solid #25252b;
+  background: #171719;
+  color: #f5f5f7;
+  padding: 48px 24px 24px;
+}
+
+.foot-grid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 32px;
+}
+
+.foot h4 {
+  font-size: .8rem;
+  font-family: var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #a7a7b0;
+  margin: 0 0 12px;
+}
+
+.foot a {
+  display: block;
+  color: #c3c3cb;
+  text-decoration: none;
+  margin-bottom: 8px;
+  font-size: .95rem;
+}
+
+.foot a:hover { color: #c477ee; }
+
+.foot-tag {
+  color: #b0b0ba;
+  font-size: .95rem;
+  margin: 8px 0 0;
+}
+
+.foot-bottom {
+  max-width: 1120px;
+  margin: 36px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid #303036;
+  color: #a7a7b0;
+  font-size: .85rem;
+}
 
 /* ---------- Paste / upload ---------- */
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
-.input {
-  width: 100%; font: inherit; font-size: 1.05rem; min-height: 52px; padding: 11px 14px; border-radius: 12px;
-  border: 1px solid var(--line-2); background: var(--bg); color: var(--ink);
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px;
 }
+
+.input {
+  width: 100%;
+  font: inherit;
+  font-size: 1.05rem;
+  min-height: 52px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--ink);
+}
+
 .input::placeholder { color: var(--faint); }
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); outline: none; }
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  outline: none;
+}
+
 textarea.input { resize: vertical; }
-.label { display: block; font-weight: 600; margin: 14px 0 6px; }
-.file-input { font: inherit; color: var(--muted); margin-top: 4px; }
+
+.label {
+  display: block;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+.file-input {
+  font: inherit;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 .upload { margin-top: 12px; }
 
 /* ---------- Guided flow ---------- */
-.flow-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-.form-name { margin: 0; color: var(--muted); font-weight: 500; }
-.qcount { margin: 0; font-family: var(--mono); font-size: .85rem; color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 99px; }
-.progress { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
-#progressFill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .5s ease; }
-.dots { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 22px; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line-2); transition: transform .2s, background .2s; }
-.dot.done { background: var(--ok); }
-.dot.current { background: var(--accent); transform: scale(1.45); }
-.dot.flag { outline: 2px dashed var(--warm); outline-offset: 2px; }
-.question-card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 32px; box-shadow: 0 30px 70px -40px rgba(56, 189, 248, .35); }
-.question-card::before { content: ""; position: absolute; left: 0; top: 28px; bottom: 28px; width: 3px; border-radius: 0 3px 3px 0; background: linear-gradient(var(--accent), var(--accent-2)); }
-.question-card h2 { font-size: 1.6rem; font-weight: 650; margin: 0 0 10px; }
-.badge { display: inline-block; padding: 2px 11px; border-radius: 99px; font-size: .8rem; font-weight: 600; font-family: var(--mono); }
-.badge.req { background: var(--err-soft); color: var(--err); }
-.badge.opt { background: var(--ok-soft); color: var(--ok); }
-.hint { color: var(--muted); font-size: 1rem; }
-.flag { background: var(--warm-soft); color: var(--warm); border: 1px dashed var(--warm); padding: 10px 14px; border-radius: 12px; }
-.error { color: var(--err); font-weight: 600; min-height: 1.4em; margin: 8px 0 0; }
 
-.mic-zone { text-align: center; margin: 18px 0 8px; }
-.mic {
-  position: relative; width: 124px; height: 124px; margin: 0 auto; border: 0; border-radius: 50%; cursor: pointer;
-  color: #04101a; font: inherit; font-size: 38px; line-height: 1;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 16px 40px -12px rgba(56, 189, 248, .6);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+.flow-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
 }
-.mic span:last-child { font-size: .9rem; font-weight: 600; }
+
+.form-name {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.qcount {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: .85rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+.progress {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+#progressFill {
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width .5s ease;
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 22px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-2);
+  transition: transform .2s, background .2s;
+}
+
+.dot.done { background: var(--ok); }
+
+.dot.current {
+  background: var(--accent);
+  transform: scale(1.45);
+}
+
+.dot.flag {
+  outline: 2px dashed var(--warm);
+  outline-offset: 2px;
+}
+
+.question-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 32px;
+  box-shadow: 0 30px 70px -40px rgba(112, 72, 232, .20);
+}
+
+.question-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 28px;
+  bottom: 28px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(var(--accent), var(--accent-2));
+}
+
+.question-card h2 {
+  font-size: 1.6rem;
+  font-weight: 650;
+  margin: 0 0 10px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 11px;
+  border-radius: 99px;
+  font-size: .8rem;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.badge.req {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.badge.opt {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.flag {
+  background: var(--warm-soft);
+  color: var(--warm);
+  border: 1px dashed var(--warm);
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.error {
+  color: var(--err);
+  font-weight: 600;
+  min-height: 1.4em;
+  margin: 8px 0 0;
+}
+
+.mic-zone {
+  text-align: center;
+  margin: 18px 0 8px;
+}
+
+.mic {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  font: inherit;
+  font-size: 38px;
+  line-height: 1;
+  background: linear-gradient(135deg, #7048e8, #c477ee);
+  box-shadow: 0 16px 40px -12px rgba(112, 72, 232, .48);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.mic span:last-child {
+  font-size: .9rem;
+  font-weight: 600;
+}
+
 .mic.on { animation: pulse 1.2s ease-out infinite; }
+
 body.hc .mic { color: #000; }
-.mic-status { min-height: 1.4em; color: var(--accent); font-weight: 600; text-align: center; margin: 8px 0 0; }
-.waves { display: none; justify-content: center; align-items: center; gap: 5px; height: 40px; margin-top: 10px; }
+
+.mic-status {
+  min-height: 1.4em;
+  color: var(--accent);
+  font-weight: 600;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.waves {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  margin-top: 10px;
+}
+
 .waves.on { display: flex; }
-.waves span { width: 5px; height: 100%; border-radius: 4px; background: var(--accent); animation: wave 1s ease-in-out infinite; }
+
+.waves span {
+  width: 5px;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  animation: wave 1s ease-in-out infinite;
+}
+
 .waves span:nth-child(2) { animation-delay: .15s; }
 .waves span:nth-child(3) { animation-delay: .3s; }
 .waves span:nth-child(4) { animation-delay: .45s; }
 .waves span:nth-child(5) { animation-delay: .6s; }
 
-.option-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 14px 0 18px; }
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
 .opt-card {
-  font: inherit; font-size: 1rem; text-align: left; display: flex; align-items: center; gap: 12px; min-height: 56px;
-  padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
   transition: border-color .15s, background .15s;
 }
-.opt-card:hover { border-color: var(--accent); background: var(--accent-soft); }
-.num { display: inline-grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--accent-soft); color: var(--accent); font-family: var(--mono); font-weight: 600; }
 
-.readback { margin-top: 18px; text-align: center; padding: 24px 18px; border-radius: 18px; background: var(--accent-soft); border: 1px solid rgba(56, 189, 248, .3); }
-.rb-title { margin: 0 0 8px; color: var(--muted); }
-.rb-value { display: inline-block; margin: 0; font-size: 1.6rem; font-weight: 650; padding: 10px 20px; max-width: 100%; border-radius: 12px; background: var(--bg); border: 1px solid var(--line-2); word-break: break-word; }
-.rb-q { font-weight: 600; margin: 12px 0 0; }
+.opt-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.num {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.readback {
+  margin-top: 18px;
+  text-align: center;
+  padding: 24px 18px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(112, 72, 232, .22);
+}
+
+.rb-title {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.rb-value {
+  display: inline-block;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 650;
+  padding: 10px 20px;
+  max-width: 100%;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  word-break: break-word;
+}
+
+.rb-q {
+  font-weight: 600;
+  margin: 12px 0 0;
+}
 
 /* ---------- Review ---------- */
-.pill { display: inline-block; padding: 5px 14px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-family: var(--mono); font-size: .85rem; }
-.review-list { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 10px; }
-.review-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
-.review-item.bad { border-color: var(--err); background: var(--err-soft); }
-.rq { margin: 0; color: var(--muted); font-size: .92rem; }
-.rv { margin: 0; font-size: 1.1rem; font-weight: 600; word-break: break-word; }
-.review-item .btn { grid-column: 2; grid-row: 1 / span 2; }
+
+.pill {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: .85rem;
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: grid;
+  gap: 10px;
+}
+
+.review-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 16px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.review-item.bad {
+  border-color: var(--err);
+  background: var(--err-soft);
+}
+
+.rq {
+  margin: 0;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.rv {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.review-item .btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
 
 /* ---------- Done & confetti ---------- */
-#screen-done { text-align: center; padding-top: 40px; }
+
+#screen-done {
+  text-align: center;
+  padding-top: 40px;
+}
+
 #screen-done .row { justify-content: center; }
-.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 40; }
-.confetti span { position: absolute; top: -20px; width: 9px; height: 15px; border-radius: 3px; animation: fall 3s linear forwards; }
-@keyframes fall { to { transform: translate(var(--drift, 0px), 110vh) rotate(720deg); } }
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 40;
+}
+
+.confetti span {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 15px;
+  border-radius: 3px;
+  animation: fall 3s linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translate(var(--drift, 0px), 110vh) rotate(720deg);
+  }
+}
 
 /* ---------- Dialogs & toast ---------- */
-dialog { border: 1px solid var(--line-2); border-radius: 20px; padding: 28px; max-width: min(520px, 92vw); background: var(--surface); color: var(--ink); box-shadow: 0 40px 90px rgba(0, 0, 0, .6); }
-dialog::backdrop { background: rgba(3, 5, 10, .7); backdrop-filter: blur(4px); }
-dialog p { color: var(--muted); }
-.toast {
-  position: fixed; left: 50%; bottom: 24px; z-index: 50; transform: translate(-50%, 200%); transition: transform .35s ease;
-  background: var(--ink); color: var(--bg); font-weight: 600; padding: 12px 20px; border-radius: 12px; max-width: 92vw; text-align: center;
+
+dialog {
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: min(520px, 92vw);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, .16);
 }
+
+dialog::backdrop {
+  background: rgba(20, 15, 35, .45);
+  backdrop-filter: blur(4px);
+}
+
+dialog p { color: var(--muted); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 50;
+  transform: translate(-50%, 200%);
+  transition: transform .35s ease;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  max-width: 92vw;
+  text-align: center;
+}
+
 .toast.show { transform: translate(-50%, 0); }
 
 /* ---------- Print (PDF export) ---------- */
+
 .print-sheet { display: none; }
+
 @media print {
   body > *:not(.print-sheet) { display: none !important; }
-  body { background: #fff; color: #000; }
-  .print-sheet { display: block; font-size: 12pt; color: #000; }
-  .print-sheet h1 { font-size: 20pt; margin-bottom: 4px; }
-  .print-sheet dl { display: grid; grid-template-columns: 1fr 2fr; gap: 8px 16px; }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .print-sheet {
+    display: block;
+    font-size: 12pt;
+    color: #000;
+  }
+  .print-sheet h1 {
+    font-size: 20pt;
+    margin-bottom: 4px;
+  }
+  .print-sheet dl {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 8px 16px;
+  }
   .print-sheet dt { font-weight: 700; }
-  .print-sheet dd { margin: 0; border-bottom: 1px solid #999; padding-bottom: 4px; }
+  .print-sheet dd {
+    margin: 0;
+    border-bottom: 1px solid #999;
+    padding-bottom: 4px;
+  }
 }
 
 /* ---------- Animations ---------- */
-@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes talk { from { transform: scale(1); } to { transform: scale(1.08) rotate(-3deg); } }
-@keyframes jump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px); } }
-@keyframes pulse {
-  0% { box-shadow: 0 16px 40px -12px rgba(56, 189, 248, .6), 0 0 0 0 rgba(56, 189, 248, .55); }
-  100% { box-shadow: 0 16px 40px -12px rgba(56, 189, 248, .6), 0 0 0 24px rgba(56, 189, 248, 0); }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
-@keyframes wave { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+
+@keyframes talk {
+  from { transform: scale(1); }
+  to { transform: scale(1.08) rotate(-3deg); }
+}
+
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-14px); }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow:
+      0 16px 40px -12px rgba(112, 72, 232, .48),
+      0 0 0 0 rgba(112, 72, 232, .35);
+  }
+  100% {
+    box-shadow:
+      0 16px 40px -12px rgba(112, 72, 232, .48),
+      0 0 0 24px rgba(112, 72, 232, 0);
+  }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(.25); }
+  50% { transform: scaleY(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ---------- Responsive ---------- */
+
 @media (max-width: 900px) {
-  .hero, .split, .duo, .store-box { grid-template-columns: 1fr; }
-  .hero { padding-top: 48px; gap: 36px; }
+  .hero, .split, .duo, .store-box {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-top: 48px;
+    gap: 36px;
+  }
+
   .foot-grid { grid-template-columns: 1fr 1fr; }
   .navlinks { display: none; }
   .demo-body { grid-template-columns: 1fr; }
-  .demo-log { border-left: 0; border-top: 1px solid var(--line); }
+
+  .demo-log {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
 }
+
 @media (max-width: 600px) {
   .topbar { padding: 12px 16px; }
   main { padding: 0 16px 32px; }
   .question-card { padding: 22px; }
   .question-card::before { display: none; }
   .mic { width: 112px; height: 112px; }
+
   .review-item { grid-template-columns: 1fr; }
-  .review-item .btn { grid-column: 1; grid-row: auto; justify-self: start; }
+
+  .review-item .btn {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
+}
+
+/* ---------- Extension callout (AwaazForm additions) ---------- */
+.success { color: var(--ok); }
+.extension-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 18px 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.extension-callout p { margin: 6px 0 0; max-width: 680px; }
+@media (max-width: 700px) {
+  .extension-callout { align-items: flex-start; flex-direction: column; }
+}
+
+/* ---------- Google Form shown beside the questions ---------- */
+.flow-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: 18px; align-items: start; }
+.flow-layout > .question-card { min-width: 0; }
+.form-panel { min-width: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; box-shadow: 0 18px 45px -35px rgba(65, 40, 120, .35); }
+.form-panel iframe { display: block; width: 100%; height: min(72vh, 720px); border: 0; background: #fff; }
+.workspace-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.workspace-heading strong { font-size: .98rem; }
+.workspace-status { padding: 4px 9px; border-radius: 99px; background: var(--bg); color: var(--muted); font-size: .76rem; text-align: right; }
+.workspace-note { margin: 0; padding: 12px 15px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.done-panel { margin: 18px 0; text-align: left; }
+.done-panel iframe { height: min(78vh, 820px); }
+@media (max-width: 900px) {
+  .flow-layout { grid-template-columns: 1fr; }
+  .flow-layout > .form-panel { order: 2; }
+  .form-panel iframe { height: 520px; }
 }
 
 </style>
@@ -402,9 +1572,7 @@ dialog p { color: var(--muted); }
       <button type="button" class="tool" id="btnAutoRead" aria-pressed="true">🔊 <span data-i18n="autoRead"></span></button>
       <button type="button" class="tool" id="btnContrast" aria-pressed="false">🌓 <span data-i18n="contrast"></span></button>
       <button type="button" class="tool" id="btnLarge" aria-pressed="false">🔠 <span data-i18n="largeText"></span></button>
-      <button type="button" class="tool" id="btnShortcuts" aria-pressed="true">⌨️ <span data-i18n="shortcuts"></span></button>
       <button type="button" class="tool" id="btnHelp">❓ <span data-i18n="help"></span></button>
-      <button type="button" class="btn small" id="btnSignIn" data-i18n="signIn"></button>
     </div>
   </header>
 
@@ -482,12 +1650,13 @@ dialog p { color: var(--muted); }
             <button type="submit" class="btn primary" data-i18n="linkCheck"></button>
           </div>
           <p id="linkMsg" class="link-msg" role="status"></p>
-          <div id="linkPanel" class="link-panel" hidden>
-            <a id="linkOpen" class="btn" href="#" target="_blank" rel="noopener noreferrer" data-i18n="linkOpen"></a>
-            <button type="button" class="btn ghost" data-go="paste" data-i18n="linkNext"></button>
-          </div>
           <p class="note" data-i18n="linkNote"></p>
         </form>
+
+        <div class="extension-callout">
+          <div><strong>Want to fill the original Google Form directly?</strong><p class="note">Install the AwaazForm Chrome extension, open your Google Form in Chrome, then open the AwaazForm side panel from the Extensions toolbar. The original form stays on screen while the assistant reads and fills it.</p></div>
+          <a class="btn primary" href="extension/README.md" target="_blank" rel="noopener">Extension setup guide</a>
+        </div>
 
         <div class="card-grid">
           <button type="button" class="choice-card c1" data-sample="scholar">
@@ -595,11 +1764,21 @@ dialog p { color: var(--muted); }
         <p id="formTitle" class="form-name"></p>
         <p id="qCount" class="qcount"></p>
       </div>
+      <div class="voice-bar">
+        <button type="button" id="btnVoice" class="btn small" aria-pressed="false"></button>
+        <p id="voiceStatus" class="note" role="status" aria-live="polite"></p>
+      </div>
       <div class="progress" id="progressBar" role="progressbar" aria-label="Form progress" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
         <div id="progressFill"></div>
       </div>
       <div id="dots" class="dots" aria-hidden="true"></div>
 
+      <div class="flow-layout">
+      <aside id="formPanel" class="form-panel" aria-labelledby="formPanelTitle" hidden>
+        <div class="workspace-heading"><strong id="formPanelTitle" data-i18n="formPanelTitle"></strong><span class="workspace-status" data-i18n="formPanelStatus"></span></div>
+        <iframe id="formPreview" title="Google Form with your confirmed answers" referrerpolicy="no-referrer"></iframe>
+        <p class="workspace-note" data-i18n="formPanelNote"></p>
+      </aside>
       <article class="question-card">
         <h2 id="qTitle" tabindex="-1"></h2>
         <p><span id="qReq" class="badge"></span></p>
@@ -639,7 +1818,9 @@ dialog p { color: var(--muted); }
 
         <div id="readback" class="readback" hidden>
           <p class="rb-title" data-i18n="readbackTitle"></p>
+          <p id="rbSaid" class="rb-q" hidden></p>
           <p id="rbValue" class="rb-value" tabindex="-1"></p>
+          <p id="rbNote" class="rb-q" hidden></p>
           <p id="rbQ" class="rb-q"></p>
           <div class="row big">
             <button type="button" id="btnConfirm" class="btn primary big" data-i18n="confirm"></button>
@@ -648,6 +1829,7 @@ dialog p { color: var(--muted); }
           </div>
         </div>
       </article>
+      </div>
     </section>
 
     <!-- SCREEN 4: REVIEW -->
@@ -669,6 +1851,10 @@ dialog p { color: var(--muted); }
       <h2 tabindex="-1" data-i18n="doneTitle"></h2>
       <p class="note" data-i18n="doneSub"></p>
       <p id="fillNote" class="note" role="status" hidden></p>
+      <aside id="donePanel" class="form-panel done-panel" aria-labelledby="donePanelTitle" hidden>
+        <div class="workspace-heading"><strong id="donePanelTitle" data-i18n="formPanelTitle"></strong><span class="workspace-status" data-i18n="donePanelStatus"></span></div>
+        <iframe id="doneFrame" title="Google Form with your confirmed answers" referrerpolicy="no-referrer"></iframe>
+      </aside>
       <div class="row">
         <button type="button" id="btnOpenForm" class="btn primary big" hidden data-i18n="openFilled"></button>
         <button type="button" id="btnPdf" class="btn" data-i18n="exportPdf"></button>
@@ -722,12 +1908,6 @@ dialog p { color: var(--muted); }
     <button type="button" class="btn primary" data-close data-i18n="close"></button>
   </dialog>
 
-  <dialog id="signDlg" aria-labelledby="signTitle">
-    <h2 id="signTitle" data-i18n="signTitle"></h2>
-    <p data-i18n="signBody"></p>
-    <button type="button" class="btn primary" data-close data-i18n="signContinue"></button>
-  </dialog>
-
   <div id="confetti" class="confetti" aria-hidden="true"></div>
   <article id="printSheet" class="print-sheet"></article>
 
@@ -742,7 +1922,6 @@ const DICT = {
     autoRead: 'Read aloud',
     contrast: 'High contrast',
     largeText: 'Large text',
-    shortcuts: 'Shortcuts',
     help: 'Help',
 
     chooseTitle: 'Which form do you want to fill today?',
@@ -777,6 +1956,27 @@ const DICT = {
     chooseOption: 'Or pick from the list',
     readbackTitle: 'You said:',
     readbackQ: 'Is this right?',
+    askVoice: 'Would you like me to read each question aloud and listen to your answers, so you do not need to press anything? Say yes or no.',
+    voiceOffSaid: 'Okay. You can use the buttons on the screen.',
+    sayYesNo: 'Please say yes or no.',
+    voiceNotHeard: 'I did not hear an answer. Please say it again.',
+    voiceTryAgain: 'Please answer again.',
+    voiceRequired: 'This question must be answered.',
+    voiceStopped: 'Hands-free mode is off. You can continue with the buttons.',
+    voiceReadAllPrompt: 'All questions are answered. Do you want me to read all the answers aloud? Say yes or no.',
+    voiceReadAllIntro: 'Your answers are.',
+    voiceDone: 'Your form is ready. Please see the answers on screen, then press Submit on the form yourself.',
+    voiceNotOption: 'I did not find that choice. Please say first option, second option, and so on.',
+    voiceSelected: 'Selected:',
+    voiceStayReview: 'Okay. You can change any answer on screen.',
+    voiceListening: 'Listening…',
+    voiceSpeaking: 'Speaking…',
+    voiceOnStatus: 'Hands-free mode is on. Speak your answers.',
+    voiceOffStatus: 'Hands-free mode is off.',
+    voiceToggleOn: '🎙 Hands-free: on',
+    voiceToggleOff: '🎙 Hands-free: off',
+    formLangNote: 'In the form’s language, this is saved as:',
+    hiUnavailable: 'Hindi translation is unavailable right now. Type your answer in English, or try again when the server is running.',
     youSaid: 'You said',
     confirm: 'Yes, correct',
     edit: 'Change it',
@@ -786,6 +1986,8 @@ const DICT = {
     flagged: 'This question was hard to understand. Please check it with a helper.',
     questionOf: 'Question {0} of {1}',
     optionsSay: 'The choices are:',
+    optionWord: 'option',
+    sayOption: 'Say the choice, for example: first option.',
     flagCount: '{0} question(s) need a check. Look for the dashed marker.',
 
     errRequired: 'Please answer this question. It is required.',
@@ -826,8 +2028,12 @@ const DICT = {
     copyFail: 'Could not copy. Please select the text and copy it.',
     startOver: 'Start a new form',
     doneSubFill: 'Your answers are ready. AwaazForm never submits anything for you.',
-    openFilled: 'Open the real form with my answers',
-    fillNote: 'The real form will open with {0} answers already filled in. They are sent to the form’s website only when you press the button. Check them, then press Submit on that form yourself.',
+    openFilled: 'Open in a new tab',
+    formPanelTitle: 'Google Form',
+    formPanelStatus: 'Fills in as you confirm answers',
+    donePanelStatus: 'Check it, then press Submit yourself',
+    formPanelNote: 'Nothing is submitted for you. The form is shown here with your confirmed answers. Press Submit on the form yourself.',
+    fillNote: 'The form below has {0} of your answers filled in. It is shown here, so your answers reach the form only while it is displayed. Check them, then press Submit on the form yourself.',
     fillLeft: '{0} answer(s) cannot be filled this way (private numbers or unsupported questions). Type those yourself.',
     doneTitle: 'Well done!',
     doneSub: 'Your answers are ready. Now open the real form and type these values yourself. AwaazForm never submits anything for you.',
@@ -848,7 +2054,6 @@ const DICT = {
     navForms: "Forms",
     navStorage: "Storage",
     navFaq: "FAQ",
-    signIn: "Sign in",
     heroHead1: "A voice assistant for every form you fill.",
     heroHead2: "You stay in control.",
     panelLabel: "Works in English and Hindi",
@@ -874,7 +2079,7 @@ const DICT = {
     cardMoreT: "More coming",
     cardMoreD: "Fillable PDFs, Google Forms, and more form types are planned after the MVP.",
     convTitle: "Your conversation, your choices.",
-    convD: "Choose English or Hindi at any time without losing answers. Turn read-aloud, high contrast, large text, or keyboard shortcuts on or off. Type instead of speaking whenever you like.",
+    convD: "Choose English or Hindi at any time without losing answers. Turn read-aloud, high contrast or large text on or off. Type instead of speaking whenever you like.",
     onlyTitle: "Only the form you are answering.",
     onlyD: "Your voice is turned into text and not stored. Nothing is submitted for you. Sensitive numbers such as Aadhaar and PAN stay masked on screen.",
     storeEyebrow: "Storage",
@@ -896,14 +2101,12 @@ const DICT = {
     faq2Q: "Does it submit the form for me?",
     faq2A: "Never. AwaazForm fills in your answers only after you confirm them. You review and press Submit on the real form yourself.",
     faq3Q: "Do I need an account?",
-    faq3A: "No. Sign in is optional, and no feature in this version needs it.",
+    faq3A: "No. AwaazForm works without an account. There is no sign-in.",
     faq4Q: "Does it cost anything?",
     faq4A: "No. It is a student project built for Katathon 6.0 and is free to use.",
     faq5Q: "Is my voice recorded?",
     faq5A: "No. Speech is turned into text in your browser. Audio is not stored or sent to a form site.",
     signTitle: "Sign in (optional)",
-    signBody: "AwaazForm works without an account. Accounts are not part of this MVP, so there is nothing to sign in to yet.",
-    signContinue: "Continue without signing in",
     footTag: "Voice-guided forms for everyone.",
     footProduct: "Product",
     footForms: "Forms",
@@ -918,12 +2121,13 @@ const DICT = {
     footAccess: "Accessibility",
     footCopy: "© 2026 Team CodeKweens. Built for Katathon 6.0.",
     linkTitle: "Have a Google Form link?",
-    linkDesc: "Paste the link here. We check it, then you copy its questions into AwaazForm.",
+    linkDesc: "Paste the link here. AwaazForm reads its questions, asks each one aloud, checks your answer and reads it back for you to confirm.",
     linkPlaceholder: "https://docs.google.com/forms/…",
     linkCheck: "Check link",
     linkInvalid: "That does not look like a web link. Paste the full address.",
     linkHttps: "Only secure https:// links are allowed.",
-    linkOk: "Link looks good. Open the form, copy its questions, then continue.",
+    linkOffline: "The AwaazForm server is not running, so this link cannot be read yet. Start the server, or paste the questions instead.",
+    linkFallback: "If this is a JavaScript-based form, paste its questions instead.",
     linkOpen: "Open the form",
     linkReading: "Reading the form's questions…",
     linkFound: "Found {0} questions. Starting now.",
@@ -932,7 +2136,7 @@ const DICT = {
     linkFetchFailed: "Could not open that link. Check it and try again, or paste the questions.",
     linkBlocked: "That link cannot be used. Use a public https:// form link.",
     linkNext: "Paste its questions",
-    linkNote: "AwaazForm never sends your answers anywhere by itself. When its server is running, only this link is sent so it can read the questions. At the end, you can choose to open the real form with your answers filled in.",
+    linkNote: "When its server is running, only this link is sent so AwaazForm can read the questions. For Google Forms, each answer you confirm is filled into the form shown beside the questions. Nothing is submitted for you.",
     heroBadge: "Voice and text, in English and Hindi",
     heroTitle1: "Your voice.",
     heroTitle2: "Your form, filled right.",
@@ -976,7 +2180,6 @@ const DICT = {
     autoRead: 'अपने-आप सुनाएँ',
     contrast: 'तेज़ रंग',
     largeText: 'बड़े अक्षर',
-    shortcuts: 'शॉर्टकट',
     help: 'मदद',
 
     chooseTitle: 'आज आप कौन सा फॉर्म भरना चाहते हैं?',
@@ -1011,6 +2214,27 @@ const DICT = {
     chooseOption: 'या सूची में से चुनें',
     readbackTitle: 'आपने कहा:',
     readbackQ: 'क्या यह सही है?',
+    askVoice: 'क्या मैं हर सवाल ज़ोर से पढ़कर सुनूँ और आपके जवाब सुनूँ, ताकि आपको कुछ दबाना न पड़े? हाँ या नहीं कहें।',
+    voiceOffSaid: 'ठीक है। आप स्क्रीन के बटन इस्तेमाल कर सकते हैं।',
+    sayYesNo: 'कृपया हाँ या नहीं कहें।',
+    voiceNotHeard: 'मुझे जवाब सुनाई नहीं दिया। कृपया फिर से बोलें।',
+    voiceTryAgain: 'कृपया फिर से जवाब दें।',
+    voiceRequired: 'इस सवाल का जवाब देना ज़रूरी है।',
+    voiceStopped: 'हैंड्स-फ़्री मोड बंद है। आप बटनों से आगे बढ़ सकते हैं।',
+    voiceReadAllPrompt: 'सभी सवालों के जवाब हो गए हैं। क्या मैं सारे जवाब पढ़कर सुनाऊँ? हाँ या नहीं कहें।',
+    voiceReadAllIntro: 'आपके जवाब हैं।',
+    voiceDone: 'आपका फॉर्म तैयार है। स्क्रीन पर जवाब देखें, फिर फॉर्म पर Submit खुद दबाएँ।',
+    voiceNotOption: 'यह विकल्प नहीं मिला। पहला विकल्प, दूसरा विकल्प, इस तरह बोलें।',
+    voiceSelected: 'चुना गया:',
+    voiceStayReview: 'ठीक है। स्क्रीन पर कोई भी जवाब बदल सकते हैं।',
+    voiceListening: 'सुन रहा हूँ…',
+    voiceSpeaking: 'बोल रहा हूँ…',
+    voiceOnStatus: 'हैंड्स-फ़्री मोड चालू है। जवाब बोलें।',
+    voiceOffStatus: 'हैंड्स-फ़्री मोड बंद है।',
+    voiceToggleOn: '🎙 हैंड्स-फ़्री: चालू',
+    voiceToggleOff: '🎙 हैंड्स-फ़्री: बंद',
+    formLangNote: 'फॉर्म की भाषा में यह ऐसे सहेजा जाएगा:',
+    hiUnavailable: 'अभी हिंदी अनुवाद उपलब्ध नहीं है। जवाब अंग्रेज़ी में लिखें, या सर्वर चालू होने पर फिर कोशिश करें।',
     youSaid: 'आपने कहा',
     confirm: 'हाँ, सही है',
     edit: 'बदलें',
@@ -1020,6 +2244,8 @@ const DICT = {
     flagged: 'यह सवाल समझ नहीं आया। किसी सहायक से जाँच लें।',
     questionOf: 'सवाल {0} / {1}',
     optionsSay: 'विकल्प हैं:',
+    optionWord: 'विकल्प',
+    sayOption: 'विकल्प बोलें, जैसे: पहला विकल्प।',
     flagCount: '{0} सवाल जाँचने हैं। धारीदार निशान देखें।',
 
     errRequired: 'कृपया यह सवाल भरें। यह ज़रूरी है।',
@@ -1060,8 +2286,12 @@ const DICT = {
     copyFail: 'कॉपी नहीं हो सका। टेक्स्ट चुनकर खुद कॉपी करें।',
     startOver: 'नया फॉर्म शुरू करें',
     doneSubFill: 'आपके जवाब तैयार हैं। AwaazForm आपके लिए कभी कुछ सबमिट नहीं करता।',
-    openFilled: 'मेरे जवाबों के साथ असली फॉर्म खोलें',
-    fillNote: 'असली फॉर्म {0} जवाब भरे हुए खुलेगा। जवाब फॉर्म की वेबसाइट पर तभी जाते हैं जब आप बटन दबाते हैं। उन्हें जाँचें, फिर उस फॉर्म पर खुद सबमिट दबाएँ।',
+    openFilled: 'नए टैब में खोलें',
+    formPanelTitle: 'Google फॉर्म',
+    formPanelStatus: 'पक्का किए जवाब के साथ भरता है',
+    donePanelStatus: 'जाँचें, फिर खुद Submit दबाएँ',
+    formPanelNote: 'AwaazForm आपके लिए कुछ भी जमा नहीं करता। फॉर्म यहाँ आपके पक्के किए जवाबों के साथ दिख रहा है। फॉर्म पर Submit खुद दबाएँ।',
+    fillNote: 'नीचे के फॉर्म में {0} जवाब भरे हुए हैं। यह यहीं दिखता है, इसलिए जवाब फॉर्म तक तभी पहुँचते हैं जब वह दिख रहा हो। उन्हें जाँचें, फिर फॉर्म पर Submit खुद दबाएँ।',
     fillLeft: '{0} जवाब इस तरीके से नहीं भरे जा सकते (निजी नंबर या अनसमर्थित सवाल)। उन्हें खुद भरें।',
     doneTitle: 'शाबाश!',
     doneSub: 'आपके जवाब तैयार हैं। अब असली फॉर्म खोलें और ये जानकारी खुद टाइप करें। AwaazForm आपके लिए कुछ भी जमा नहीं करता।',
@@ -1082,7 +2312,6 @@ const DICT = {
     navForms: "फॉर्म",
     navStorage: "सेव",
     navFaq: "सवाल-जवाब",
-    signIn: "साइन इन",
     heroHead1: "हर फॉर्म के लिए आपकी आवाज़ का सहायक।",
     heroHead2: "फ़ैसला आपका ही रहता है।",
     panelLabel: "अंग्रेज़ी और हिंदी दोनों में",
@@ -1108,7 +2337,7 @@ const DICT = {
     cardMoreT: "और आने वाले हैं",
     cardMoreD: "भरने योग्य PDF, Google Forms और दूसरे फॉर्म MVP के बाद की योजना में हैं।",
     convTitle: "आपकी बातचीत, आपकी पसंद।",
-    convD: "जवाब खोए बिना कभी भी अंग्रेज़ी या हिंदी चुनें। सुनाना, तेज़ रंग, बड़े अक्षर या कीबोर्ड शॉर्टकट चालू या बंद करें। जब चाहें बोलने के बजाय लिखें।",
+    convD: "जवाब खोए बिना कभी भी अंग्रेज़ी या हिंदी चुनें। सुनाना, तेज़ रंग या बड़े अक्षर चालू या बंद करें। जब चाहें बोलने के बजाय लिखें।",
     onlyTitle: "सिर्फ़ वही फॉर्म, जो आप भर रहे हैं।",
     onlyD: "आपकी आवाज़ लिखे शब्दों में बदली जाती है और सेव नहीं होती। आपके लिए कुछ भी जमा नहीं होता। आधार और PAN जैसे निजी नंबर स्क्रीन पर छिपे रहते हैं।",
     storeEyebrow: "सेव",
@@ -1130,14 +2359,12 @@ const DICT = {
     faq2Q: "क्या यह मेरा फॉर्म खुद जमा करता है?",
     faq2A: "नहीं, कभी नहीं। AwaazForm आपके जवाब तभी भरता है जब आप उन्हें पक्का करें। असली फॉर्म की समीक्षा और Submit आप खुद करते हैं।",
     faq3Q: "क्या मुझे खाता चाहिए?",
-    faq3A: "नहीं। साइन इन वैकल्पिक है, और इस संस्करण की किसी सुविधा को इसकी ज़रूरत नहीं।",
+    faq3A: "नहीं। AwaazForm बिना खाते के चलता है। इसमें साइन इन नहीं है।",
     faq4Q: "क्या इसके पैसे लगते हैं?",
     faq4A: "नहीं। यह Katathon 6.0 के लिए बना छात्र प्रोजेक्ट है और मुफ़्त है।",
     faq5Q: "क्या मेरी आवाज़ रिकॉर्ड होती है?",
     faq5A: "नहीं। बोली गई बात आपके ब्राउज़र में ही लिखे शब्दों में बदलती है। ऑडियो न सेव होता है, न किसी फॉर्म की साइट पर जाता है।",
     signTitle: "साइन इन (वैकल्पिक)",
-    signBody: "AwaazForm बिना खाते के चलता है। खाते इस MVP का हिस्सा नहीं हैं, इसलिए अभी साइन इन करने को कुछ नहीं है।",
-    signContinue: "बिना साइन इन किए जारी रखें",
     footTag: "सबके लिए आवाज़ से भरे जाने वाले फॉर्म।",
     footProduct: "उत्पाद",
     footForms: "फॉर्म",
@@ -1152,12 +2379,13 @@ const DICT = {
     footAccess: "सुलभता",
     footCopy: "© 2026 Team CodeKweens. Katathon 6.0 के लिए बना।",
     linkTitle: "Google Form का लिंक है?",
-    linkDesc: "लिंक यहाँ चिपकाएँ। हम उसे जाँचते हैं, फिर आप उसके सवाल AwaazForm में कॉपी करें।",
+    linkDesc: "लिंक यहाँ चिपकाएँ। AwaazForm उसके सवाल पढ़ेगा, हर सवाल ज़ोर से पूछेगा, आपका जवाब जाँचेगा और वापस सुनाकर पक्का करवाएगा।",
     linkPlaceholder: "https://docs.google.com/forms/…",
     linkCheck: "लिंक जाँचें",
     linkInvalid: "यह वेब लिंक जैसा नहीं दिख रहा। पूरा पता चिपकाएँ।",
     linkHttps: "सिर्फ़ सुरक्षित https:// लिंक चलेंगे।",
-    linkOk: "लिंक सही लगता है। फॉर्म खोलें, सवाल कॉपी करें, फिर आगे बढ़ें।",
+    linkOffline: "AwaazForm सर्वर चालू नहीं है, इसलिए यह लिंक अभी नहीं पढ़ा जा सकता। सर्वर चालू करें, या सवाल चिपकाएँ।",
+    linkFallback: "अगर यह JavaScript से बना फॉर्म है, तो उसके सवाल खुद चिपकाएँ।",
     linkOpen: "फॉर्म खोलें",
     linkReading: "फॉर्म के सवाल पढ़े जा रहे हैं…",
     linkFound: "{0} सवाल मिले। अब शुरू करते हैं।",
@@ -1166,7 +2394,7 @@ const DICT = {
     linkFetchFailed: "यह लिंक नहीं खुल सका। लिंक जाँचकर फिर कोशिश करें, या सवाल चिपकाएँ।",
     linkBlocked: "यह लिंक इस्तेमाल नहीं हो सकता। सार्वजनिक https:// फॉर्म लिंक चिपकाएँ।",
     linkNext: "सवाल चिपकाएँ",
-    linkNote: "AwaazForm आपके जवाब अपने-आप कहीं नहीं भेजता। सर्वर चालू हो तो सवाल पढ़ने के लिए सिर्फ़ यह लिंक भेजा जाता है। आख़िर में आप चाहें तो असली फॉर्म आपके जवाबों के साथ खोल सकते हैं।",
+    linkNote: "सर्वर चालू हो तो सवाल पढ़ने के लिए सिर्फ़ यह लिंक भेजा जाता है। आपका हर पक्का किया जवाब बगल के फॉर्म में भरा जाता है, और कुछ भी आपके लिए जमा नहीं होता।",
     heroBadge: "आवाज़ और लिखकर, हिंदी और English में",
     heroTitle1: "आपकी आवाज़।",
     heroTitle2: "आपका फॉर्म, सही भरा हुआ।",
@@ -1370,9 +2598,20 @@ function matchOption(field, raw) {
   }));
 }
 
+// Removes symbols that speech input, translation and typing add to an answer:
+// bars, Hindi sentence marks, question and exclamation marks, quotes anywhere;
+// full stops, commas, colons and semicolons at the start or end. Letters and digits are kept.
+function cleanAnswer(raw) {
+  return String(raw ?? '')
+    .replace(/[|।?!"“”„]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s.,;:]+|[\s.,;:]+$/g, '')
+    .trim();
+}
+
 // Returns { valid, value } or { valid:false, err } where err is an i18n key.
 function normalize(field, raw) {
-  const v = String(raw ?? '').trim();
+  const v = cleanAnswer(raw);
 
   if (field.type === 'select') {
     if (!v) return field.required ? bad('errOption') : ok('');
@@ -1461,13 +2700,14 @@ function parseText(text) {
   });
 }
 
-// ---------- Pre-filled link for Google Forms ----------
-// Builds a link that opens the real Google Form with the confirmed answers already filled in.
-// The user checks it and presses Submit themselves; nothing is ever submitted for them.
-// Private ('sensitive') answers are never put in a link, because links stay in browser history.
-// Returns { url, filled, left } or null when this form cannot be pre-filled.
+// ---------- Google Form with confirmed answers filled in ----------
+// Builds the address of the real Google Form with the confirmed answers already filled in.
+// Used to show the form inside AwaazForm (embedded=true) and for the "open in a new tab" link.
+// Nothing is submitted: the user presses Submit on the form themselves.
+// Private ('sensitive') answers are never put in the address, because addresses stay in history.
+// Returns { url, filled, left }, or null when this is not a Google Form link.
 // `left` counts answers the user must type in themselves.
-function buildPrefillUrl(form, answers) {
+function buildFormUrl(form, answers, { embedded = false } = {}) {
   let u;
   try { u = new URL(form.sourceUrl); } catch { return null; }
   if (u.protocol !== 'https:' || u.hostname !== 'docs.google.com' || !/\/forms\//.test(u.pathname)) return null;
@@ -1475,6 +2715,7 @@ function buildPrefillUrl(form, answers) {
   u.hash = '';
   u.pathname = `${u.pathname.replace(/\/(viewform|formResponse|edit|prefill)?\/?$/, '')}/viewform`;
   u.searchParams.set('usp', 'pp_url');
+  if (embedded) u.searchParams.set('embedded', 'true');
 
   let filled = 0;
   let left = 0;
@@ -1493,7 +2734,7 @@ function buildPrefillUrl(form, answers) {
     }
     filled++;
   }
-  return filled ? { url: u.href, filled, left } : null;
+  return { url: u.href, filled, left };
 }
 
 // ---------- PII masking for copied / shared text ----------
@@ -1505,7 +2746,7 @@ function maskPII(text) {
     .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email hidden]');
 }
 
-return { STORAGE_KEY, PREFS_KEY, EXPIRY_MS, SAMPLE_FORMS, toAscii, toDev, labelFor, fieldPrefill, displayValue, normalize, parseText, maskPII, buildPrefillUrl };
+return { STORAGE_KEY, PREFS_KEY, EXPIRY_MS, SAMPLE_FORMS, toAscii, toDev, labelFor, fieldPrefill, displayValue, normalize, parseText, maskPII, buildFormUrl, cleanAnswer };
 })();
 const SPEECH = (() => {
 // Browser speech wrappers. Speech-to-text uses the Web Speech API (Chrome / Edge).
@@ -1676,13 +2917,25 @@ async function serverParseUrl(url) {
   }
 }
 
-return { API_BASE, SERVER_VALIDATION, serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl };
+// Translates a question, option or answer between English ('en') and Hindi ('hi') through the backend.
+// Returns the translated text, or null when the server or the translation service is unavailable.
+async function serverTranslate(text, target) {
+  const r = await call('/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, target }),
+  }, 15000);
+  const out = typeof r?.translated === 'string' ? r.translated.trim() : '';
+  return out || null;
+}
+
+return { API_BASE, SERVER_VALIDATION, serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl, serverTranslate };
 })();
 const { t, getLang, setLang, applyStatic } = I18N;
 const { SAMPLE_FORMS, parseText, normalize, labelFor, displayValue, fieldPrefill,
-  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildPrefillUrl } = DATA;
-const { listen, stopListening, speak, speechInputSupported } = SPEECH;
-const { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl } = API;
+  EXPIRY_MS, STORAGE_KEY, PREFS_KEY, buildFormUrl, cleanAnswer } = DATA;
+const { listen, stopListening, speak, speechInputSupported, speechOutputSupported } = SPEECH;
+const { serverOnline, serverValidate, serverParseText, serverExtractText, serverParseUrl, serverTranslate } = API;
 
 
 
@@ -1693,13 +2946,84 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const L = () => getLang();
 
+// ---------- Hindi: questions shown in Hindi, answers saved in the form's language ----------
+const HINDI_WORD_RE = /[\u0905-\u0939\u0958-\u095F]/;   // Hindi letters (digits alone need no translation)
+const hiCache = new Map();
+
+// Translates one piece of text to Hindi, once. Rejects if the server cannot translate it.
+function toHindi(text) {
+  if (!text || HINDI_WORD_RE.test(text)) return Promise.resolve(text);
+  if (!hiCache.has(text)) {
+    hiCache.set(text, serverTranslate(text, 'hi').then((out) => {
+      if (!out) throw new Error('translation unavailable');
+      return out;
+    }).catch((err) => { hiCache.delete(text); throw err; }));
+  }
+  return hiCache.get(text);
+}
+
+// Adds Hindi labels, hints and options to the form, in place. The English text is kept,
+// because the form and the saved answers always use the form's own language.
+async function ensureHindi(form) {
+  const jobs = [];
+  for (const f of form.fields) {
+    const label = f.label.en;
+    if (label && (!f.label.hi || f.label.hi === label)) jobs.push(toHindi(label).then((v) => { f.label.hi = v; }));
+    if (f.hint?.en && (!f.hint.hi || f.hint.hi === f.hint.en)) jobs.push(toHindi(f.hint.en).then((v) => { f.hint.hi = v; }));
+    for (const o of f.options || []) {
+      const eng = o.en || o.v;
+      if (eng && (!o.hi || o.hi === eng)) jobs.push(toHindi(eng).then((v) => { o.hi = v; }));
+    }
+  }
+  await Promise.all(jobs);
+}
+
+// Translates a Hindi answer into the form's language (English).
+// Speech recognition and translation add marks that are not part of an answer: a full stop
+// after a name or number, a bar ("|") or a Hindi sentence mark (।). They are removed before checking.
+async function toEnglish(text) {
+  const out = await serverTranslate(cleanAnswer(text), 'en');
+  if (!out) throw new Error('translation unavailable');
+  return cleanAnswer(out);
+}
+
+// Hands-free voice mode: the app reads each question, listens, reads the answer back and waits
+// for yes or no. `voice.run` is a token: any manual action or "stop" changes it and ends the loop.
+const voice = { on: false, offering: false, run: 0 };
+
+const YES_WORDS = new Set(['yes', 'yeah', 'yep', 'yup', 'correct', 'right', 'ok', 'okay', 'sure',
+  'haan', 'han', 'ha', 'ji', 'sahi', 'theek', 'thik', 'हाँ', 'हां', 'हा', 'जी', 'सही', 'ठीक', 'ओके']);
+const NO_WORDS = new Set(['no', 'nope', 'not', 'wrong', 'incorrect', 'change', 'edit',
+  'nahi', 'nahin', 'na', 'galat', 'badlo', 'badlen', 'नहीं', 'नही', 'ना', 'गलत', 'बदलें', 'बदलो', 'बदल']);
+
+// Words of a spoken reply: lower case, punctuation removed (Devanagari vowel signs are kept).
+const wordsOf = (text) => String(text || '').toLowerCase()
+  .replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
+
+// true = yes, false = no, null = not clear.
+function yesNo(text) {
+  const words = wordsOf(text);
+  if (words.some((w) => NO_WORDS.has(w))) return false;
+  if (words.some((w) => YES_WORDS.has(w))) return true;
+  return null;
+}
+
+// Spoken commands while answering: 'stop', 'repeat', 'back', 'skip', or null for an answer.
+function voiceCommand(text) {
+  const w = wordsOf(text).join(' ');
+  if (/\b(stop|pause|band karo)\b|रुको|बंद करो/.test(w)) return 'stop';
+  if (/\b(repeat|again|say again|dobara)\b|दोहराओ|दोहराएँ|फिर से/.test(w)) return 'repeat';
+  if (/\b(back|previous|go back)\b|पीछे/.test(w)) return 'back';
+  if (/\b(skip|next question)\b|छोड़ो|छोड़ें/.test(w)) return 'skip';
+  return null;
+}
+
 const state = {
   form: null,
   idx: 0,
   answers: {},
   pending: null,        // { value, raw } waiting for confirmation (FR4)
   autoRead: true,
-  shortcuts: true,
   micOK: false,
   listening: false,
   saveOn: false,
@@ -1762,19 +3086,16 @@ function loadPrefs() {
     autoRead: true,
     contrast: window.matchMedia('(prefers-contrast: more)').matches,
     large: false,
-    shortcuts: true,
     ...saved,
   };
   setLang(state.prefs.lang);
   state.autoRead = state.prefs.autoRead;
-  state.shortcuts = state.prefs.shortcuts;
   document.body.classList.toggle('hc', !!state.prefs.contrast);
   document.documentElement.classList.toggle('large', !!state.prefs.large);
 }
 
 function savePrefs() {
   state.prefs.autoRead = state.autoRead;
-  state.prefs.shortcuts = state.shortcuts;
   state.prefs.contrast = document.body.classList.contains('hc');
   state.prefs.large = document.documentElement.classList.contains('large');
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs)); } catch { /* ignore */ }
@@ -1785,7 +3106,6 @@ function updateToggles() {
   set('#btnAutoRead', state.autoRead);
   set('#btnContrast', document.body.classList.contains('hc'));
   set('#btnLarge', document.documentElement.classList.contains('large'));
-  set('#btnShortcuts', state.shortcuts);
   $$('[data-lang-btn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.langBtn === L())));
 }
 
@@ -1834,6 +3154,7 @@ function startForm(form) {
   state.saveOn = $('#saveProgress').checked;
   $('#formTitle').textContent = form.title[L()] || form.title.en;
   show('flow');
+  offerVoice();   // starts first, so the question is not read aloud twice
   askQuestion();
 }
 
@@ -1849,15 +3170,36 @@ function onResume() {
   $('#saveProgress').checked = true;
   $('#formTitle').textContent = s.form.title[L()] || s.form.title.en;
   show('flow');
+  offerVoice();
   askQuestion();
 }
 
 // ---------- Guided flow (FR1, FR2, FR3, FR7) ----------
-function askQuestion(prefill) {
+// Google Forms only: show the real form inside the app, filled with the answers confirmed so far.
+// It reloads only when those answers change. Nothing is submitted.
+function renderFormPanel() {
+  const panel = $('#formPanel');
+  const built = state.form && state.form.sourceUrl ? buildFormUrl(state.form, state.answers, { embedded: true }) : null;
+  panel.hidden = !built;
+  if (!built) return;
+  const frame = $('#formPreview');
+  if (frame.dataset.url !== built.url) { frame.dataset.url = built.url; frame.src = built.url; }
+}
+
+let askToken = 0;
+async function askQuestion(prefill) {
+  const token = ++askToken;
+  let hindiFailed = false;
+  if (L() === 'hi' && state.form) {
+    try { await ensureHindi(state.form); }
+    catch { hindiFailed = true; showToast(t('hiUnavailable')); }
+    if (token !== askToken) return;
+  }
   const f = current();
   const n = state.form.fields.length;
   const lang = L();
   state.pending = null;
+  renderFormPanel();
   $('#readback').hidden = true;
   $('#answerArea').hidden = false;
 
@@ -1874,7 +3216,7 @@ function askQuestion(prefill) {
   $('#qHint').textContent = f.hint ? (f.hint[lang] || f.hint.en || '') : '';
   $('#flagNote').hidden = !f.flag;
   $('#flagNote').textContent = f.flag ? t('flagged') : '';
-  $('#fieldError').textContent = '';
+  $('#fieldError').textContent = hindiFailed ? t('hiUnavailable') : '';
 
   const value = prefill ?? fieldPrefill(f, state.answers[f.id]);
   const isSel = f.type === 'select';
@@ -1892,7 +3234,7 @@ function askQuestion(prefill) {
     inp.placeholder = f.type === 'date' ? 'dd/mm/yyyy' : '';
   }
 
-  if (state.autoRead) readQuestion();
+  if (state.autoRead && !voice.on && !voice.offering) readQuestion();
   $('#qTitle').focus();
 }
 
@@ -1917,24 +3259,94 @@ function renderOptions(f, lang) {
   });
 }
 
-function readQuestion() {
-  const f = current();
-  const lang = f.lang || L();
+// Position words for choices read aloud: "First option: …", "Second option: …".
+const ORDINAL_SAY = {
+  en: ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'],
+  hi: ['पहला', 'दूसरा', 'तीसरा', 'चौथा', 'पाँचवाँ', 'छठा', 'सातवाँ', 'आठवाँ', 'नौवाँ', 'दसवाँ'],
+};
+// Words a person may say to pick the choice in that position (lower case, as wordsOf returns them).
+const ORDINAL_WORDS = [
+  ['first', '1st', 'one', '1', 'pehla', 'pahla', 'पहला', 'पहले', 'एक'],
+  ['second', '2nd', 'two', '2', 'doosra', 'dusra', 'दूसरा', 'दूसरे', 'दो'],
+  ['third', '3rd', 'three', '3', 'teesra', 'तीसरा', 'तीसरे', 'तीन'],
+  ['fourth', '4th', 'four', '4', 'chautha', 'चौथा', 'चौथे', 'चार'],
+  ['fifth', '5th', 'five', '5', 'paanchwan', 'panchwan', 'पाँचवाँ', 'पांचवां', 'पाँच'],
+  ['sixth', '6th', 'six', '6', 'chhatha', 'छठा', 'छठे', 'छह', 'छः'],
+  ['seventh', '7th', 'seven', '7', 'satwan', 'सातवाँ', 'सातवां', 'सात'],
+  ['eighth', '8th', 'eight', '8', 'aathwan', 'आठवाँ', 'आठवां', 'आठ'],
+  ['ninth', '9th', 'nine', '9', 'nauwan', 'नौवाँ', 'नौवां', 'नौ'],
+  ['tenth', '10th', 'ten', '10', 'dasvan', 'दसवाँ', 'दसवां', 'दस'],
+];
+
+function questionText(f) {
+  const lang = L();
   let text = `${labelFor(f, lang)}.`;
   const hint = f.hint && (f.hint[lang] || f.hint.en);
   if (hint) text += ` ${hint}`;
   if (f.type === 'select') {
-    text += ` ${t('optionsSay')} ${f.options.map((o, i) => `${i + 1}. ${o[lang] || o.en || o.v}`).join('. ')}.`;
+    const names = ORDINAL_SAY[lang] || ORDINAL_SAY.en;
+    const list = f.options.map((o, i) =>
+      `${names[i] || String(i + 1)} ${t('optionWord')}: ${o[lang] || o.en || o.v}.`);
+    text += ` ${t('optionsSay')} ${list.join(' ')} ${t('sayOption')}`;
   }
-  speakText(text, lang);
+  return text;
+}
+
+// The choice the person named: by its words, or by its position ("first", "2nd", "दूसरा").
+// Returns { v, label } or null.
+function pickOption(f, heard, lang) {
+  // Devanagari digits to ASCII, so "२" works like "2".
+  const digits = heard.replace(/[०-९]/g, (d) => String('०१२३४५६७८९'.indexOf(d)));
+  const spoken = ` ${wordsOf(digits).join(' ')} `;
+  for (const o of f.options) {
+    const label = o[lang] || o.en || o.v;
+    const words = wordsOf(label).join(' ');
+    if (words && spoken.includes(` ${words} `)) return { v: o.v, label };
+  }
+  for (let i = 0; i < f.options.length && i < ORDINAL_WORDS.length; i++) {
+    if (ORDINAL_WORDS[i].some((w) => spoken.includes(` ${w} `))) {
+      const o = f.options[i];
+      return { v: o.v, label: o[lang] || o.en || o.v };
+    }
+  }
+  return null;
+}
+
+// Every answer, for reading aloud on the final preview (sensitive answers are not read out).
+function readAllText() {
+  const lang = L();
+  return state.form.fields
+    .filter((f) => hasAnswer(f) && f.type !== 'sensitive')
+    .map((f) => `${labelFor(f, lang)}: ${displayValue(f, state.answers[f.id], lang)}.`)
+    .join(' ');
+}
+
+function readQuestion() {
+  speakText(questionText(current()), L());
+}
+
+// Checks an answer for the current question. Returns { res, text }; res.valid says whether it is accepted.
+async function checkAnswer(f, raw) {
+  const text = cleanAnswer(raw);
+  const hindiWords = L() === 'hi' && f.type !== 'sensitive' && HINDI_WORD_RE.test(text);
+  let res;
+  try {
+    if (hindiWords && f.type !== 'select') {
+      res = normalize(f, await toEnglish(text));
+    } else {
+      // Server check is off by default (answers stay on the device); see SERVER_VALIDATION in api.js.
+      res = (await serverValidate(f, text)) || normalize(f, text);
+      if (!res.valid && hindiWords) res = normalize(f, await toEnglish(text));
+    }
+  } catch { res = { valid: false, err: 'hiUnavailable' }; }
+  return { res, text };
 }
 
 async function submitRaw(raw) {
   const f = current();
-  // Server check is off by default (answers stay on the device); see SERVER_VALIDATION in api.js.
-  const res = (await serverValidate(f, raw)) || normalize(f, raw);
+  const { res, text } = await checkAnswer(f, raw);
   if (!res.valid) return fail(t(res.err));
-  state.pending = { value: res.value, raw: String(raw).trim() };
+  state.pending = { value: res.value, raw: text };
   showReadback();
 }
 
@@ -1952,11 +3364,22 @@ function showReadback() {
   $('#readback').hidden = false;
   $('#rbValue').textContent = displayValue(f, state.pending.value, L()) || t('skipped');
   $('#rbQ').textContent = t('readbackQ');
+  // Hindi answer: show what was said, and the value that is saved in the form's language.
+  const said = state.pending.raw;
+  const formValue = displayValue(f, state.pending.value, 'en');
+  const differs = displayValue(f, state.pending.value, L()) !== formValue;
+  const saidHindi = HINDI_WORD_RE.test(said) && f.type !== 'sensitive';
+  $('#rbSaid').hidden = !saidHindi;
+  $('#rbSaid').textContent = saidHindi ? `${t('youSaid')}: ${said}` : '';
+  const showNote = f.type !== 'sensitive' && (saidHindi || differs) && !!state.pending.value;
+  $('#rbNote').hidden = !showNote;
+  $('#rbNote').textContent = showNote ? `${t('formLangNote')} ${formValue}` : '';
   $('#rbValue').focus();
   readbackSpeak();
 }
 
 function readbackSpeak() {
+  if (voice.on) return;   // the voice loop reads the answer back itself
   const f = current();
   const shown = displayValue(f, state.pending?.value, L()) || t('skipped');
   speakText(`${t('youSaid')}: ${shown}. ${t('readbackQ')}`);
@@ -1973,9 +3396,9 @@ function confirmAnswer() {
     state.returnToReview = false;
     state.idx = state.form.fields.length - 1;
     goReview();
-  } else {
-    askQuestion();
+    return null;
   }
+  return askQuestion();
 }
 
 function editAnswer() {
@@ -1985,7 +3408,13 @@ function editAnswer() {
 }
 
 function goBack() {
-  if (state.idx === 0) return;
+  if (state.idx === 0) {
+    // On the first question, Back returns to the screen the form came from.
+    const pasted = state.form?.id === 'custom';
+    show(pasted ? 'paste' : 'start');
+    if (!pasted) renderResume();
+    return;
+  }
   state.idx--;
   askQuestion();
 }
@@ -2033,16 +3462,190 @@ function setMic(on) {
 
 // ---------- Keyboard shortcuts (spec section 9) ----------
 function onKey(e) {
-  if (!state.shortcuts || document.querySelector('dialog[open]')) return;
+  if (document.querySelector('dialog[open]')) return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(e.target.tagName)) return;
   const inFlow = visibleScreen() === 'flow';
+  if (inFlow && (voice.on || voice.offering) && ['Space', 'KeyR', 'KeyE', 'Enter'].includes(e.code)) stopVoice();
   const rb = !$('#readback').hidden;
   const key = e.key.toLowerCase();
   if (e.code === 'Space' && inFlow && !rb) { e.preventDefault(); onMic(); }
   else if (key === 'r' && inFlow) repeat();
   else if (e.key === 'Enter' && inFlow && rb) confirmAnswer();
   else if (key === 'e' && inFlow && rb) editAnswer();
+}
+
+// ---------- Hands-free voice mode ----------
+function setVoiceStatus(text) {
+  $('#voiceStatus').textContent = text;
+}
+
+function updateVoiceUI() {
+  const on = voice.on || voice.offering;
+  $('#btnVoice').setAttribute('aria-pressed', String(on));
+  $('#btnVoice').textContent = on ? t('voiceToggleOn') : t('voiceToggleOff');
+  setVoiceStatus(on ? t('voiceOnStatus') : t('voiceOffStatus'));
+}
+
+// Ends the voice mode at once: stops speaking and listening, and any loop still waiting exits.
+function stopVoice() {
+  voice.run++;
+  voice.on = false;
+  voice.offering = false;
+  stopListening();
+  window.speechSynthesis?.cancel?.();
+  updateVoiceUI();
+}
+
+// Speaks a text and resolves when it has been spoken (or after a safe time limit).
+function sayAndWait(text, lang = L()) {
+  return new Promise((resolve) => {
+    if (!speechOutputSupported) return resolve();
+    const limit = setTimeout(resolve, Math.max(4000, text.length * 120));
+    setVoiceStatus(t('voiceSpeaking'));
+    speak(text, lang, { onEnd: () => { clearTimeout(limit); resolve(); } });
+  });
+}
+
+// Listens for one spoken reply. Resolves with the text, or '' when nothing was heard in time.
+async function listenFor(token, ms = 12000) {
+  if (!speechInputSupported) return '';
+  setVoiceStatus(t('voiceListening'));
+  let timer;
+  let blocked = false;
+  try {
+    const heard = await Promise.race([
+      listen(L()).then((r) => r.text).catch((err) => {
+        // No microphone or no permission: stop, rather than repeating "I did not hear" forever.
+        if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(err?.code)) blocked = true;
+        return '';
+      }),
+      new Promise((resolve) => { timer = setTimeout(() => { stopListening(); resolve(''); }, ms); }),
+    ]);
+    if (blocked && token === voice.run) { stopVoice(); showToast(t('micDenied')); return ''; }
+    return token === voice.run ? heard : '';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// At the start of a form: ask, by voice, whether to use hands-free mode. Yes or no is spoken.
+async function offerVoice() {
+  if (!speechInputSupported || !speechOutputSupported) return;
+  const token = ++voice.run;
+  voice.offering = true;
+  updateVoiceUI();
+  try {
+    for (let tries = 0; tries < 2 && token === voice.run; tries++) {
+      await sayAndWait(t('askVoice'));
+      const answer = yesNo(await listenFor(token, 9000));
+      if (token !== voice.run) return;
+      if (answer === true) {
+        voice.offering = false;
+        state.micOK = true;   // a spoken yes is the consent to listen
+        return runVoice(token);
+      }
+      if (answer === false) break;
+    }
+    if (token !== voice.run) return;
+    voice.offering = false;
+    updateVoiceUI();
+    await sayAndWait(t('voiceOffSaid'));
+    if (state.autoRead && visibleScreen() === 'flow') readQuestion();
+  } finally {
+    if (token === voice.run) { voice.offering = false; updateVoiceUI(); }
+  }
+}
+
+// Started by the Hands-free button.
+function startVoice() {
+  if (!speechInputSupported || !speechOutputSupported) return;
+  state.micOK = true;
+  runVoice(++voice.run);
+}
+
+// The whole form, by voice: question, answer, read-back, yes or no, next question.
+async function runVoice(token) {
+  voice.on = true;
+  updateVoiceUI();
+  while (token === voice.run && visibleScreen() === 'flow') {
+    await askQuestion();
+    if (token !== voice.run) return;
+    const f = current();
+    await sayAndWait(questionText(f));
+    if (token !== voice.run) return;
+
+    const heard = await listenFor(token, 15000);
+    if (token !== voice.run) return;
+    if (!heard) { await sayAndWait(t('voiceNotHeard')); continue; }
+
+    const command = voiceCommand(heard);
+    if (command === 'stop') { stopVoice(); await sayAndWait(t('voiceStopped')); return; }
+    if (command === 'repeat') continue;
+    if (command === 'back') { if (state.idx > 0) state.idx--; continue; }
+    if (command === 'skip') {
+      if (f.required) { await sayAndWait(t('voiceRequired')); continue; }
+      state.idx++;
+      if (state.idx >= state.form.fields.length) { state.idx = state.form.fields.length - 1; goReview(); break; }
+      continue;
+    }
+
+    // A choice is picked by name or position and selected at once: no yes or no for choices.
+    if (f.type === 'select') {
+      const picked = pickOption(f, heard, L());
+      if (!picked) { await sayAndWait(t('voiceNotOption')); continue; }
+      state.pending = { value: picked.v, raw: picked.label };
+      await sayAndWait(`${t('voiceSelected')} ${picked.label}.`);
+      if (token !== voice.run) return;
+      await confirmAnswer();
+      continue;
+    }
+
+    const { res, text } = await checkAnswer(f, heard);
+    if (token !== voice.run) return;
+    if (!res.valid) { await sayAndWait(`${t(res.err)} ${t('voiceTryAgain')}`); continue; }
+
+    state.pending = { value: res.value, raw: text };
+    showReadback();
+    let decision = null;
+    for (let tries = 0; tries < 3 && decision === null && token === voice.run; tries++) {
+      const shown = displayValue(f, res.value, L()) || t('skipped');
+      await sayAndWait(`${t('youSaid')}: ${shown}. ${t('readbackQ')} ${t('sayYesNo')}`);
+      if (token !== voice.run) return;
+      const reply = await listenFor(token, 10000);
+      if (token !== voice.run) return;
+      if (voiceCommand(reply) === 'repeat') continue;
+      decision = yesNo(reply);
+    }
+    if (token !== voice.run) return;
+    if (decision === true) {
+      await confirmAnswer();
+    } else {
+      state.pending = null;
+      await askQuestion(decision === false ? text : undefined);
+    }
+  }
+  if (token !== voice.run) return;
+
+  // All questions answered: ask whether to read all the answers aloud, then open the
+  // completed form and ask the person to check it and submit it themselves.
+  if (visibleScreen() === 'review') {
+    let readAll = null;
+    for (let tries = 0; tries < 2 && readAll === null && token === voice.run; tries++) {
+      await sayAndWait(t('voiceReadAllPrompt'));
+      readAll = yesNo(await listenFor(token, 12000));
+      if (token !== voice.run) return;
+    }
+    if (readAll === null) {
+      stopVoice();
+      await sayAndWait(t('voiceStayReview'));
+      return;
+    }
+    stopVoice();
+    if (readAll) await sayAndWait(`${t('voiceReadAllIntro')} ${readAllText()}`);
+    onFinish();
+    await sayAndWait(t('voiceDone'));
+  }
 }
 
 // ---------- Review (F8, FR8) ----------
@@ -2090,16 +3693,21 @@ function onReviewEdit(e) {
   askQuestion();
 }
 
-// Google Forms only: offer to open the real form with the confirmed answers filled in.
+// Google Forms only: the real form, with the confirmed answers filled in, shown inside the app.
+// "Open in a new tab" is kept as a fallback. Nothing is submitted.
 let fillUrl = null;
 function renderFill() {
-  const fill = state.form && state.form.sourceUrl ? buildPrefillUrl(state.form, state.answers) : null;
-  fillUrl = fill ? fill.url : null;
+  const fill = state.form && state.form.sourceUrl ? buildFormUrl(state.form, state.answers, { embedded: true }) : null;
+  fillUrl = fill ? buildFormUrl(state.form, state.answers).url : null;
   $('#btnOpenForm').hidden = !fill;
   $('#fillNote').hidden = !fill;
+  $('#donePanel').hidden = !fill;
   // The usual line says "type these values yourself", which is wrong when we can fill the form.
   $('#screen-done [data-i18n="doneSub"]').textContent = t(fill ? 'doneSubFill' : 'doneSub');
-  if (fill) $('#fillNote').textContent = t('fillNote', fill.filled) + (fill.left ? ` ${t('fillLeft', fill.left)}` : '');
+  if (!fill) return;
+  $('#fillNote').textContent = t('fillNote', fill.filled) + (fill.left ? ` ${t('fillLeft', fill.left)}` : '');
+  const frame = $('#doneFrame');
+  if (frame.dataset.url !== fill.url) { frame.dataset.url = fill.url; frame.src = fill.url; }
 }
 function openFilledForm() {
   if (fillUrl) window.open(fillUrl, '_blank', 'noopener,noreferrer');
@@ -2152,38 +3760,7 @@ async function copyAnswers() {
   }
 }
 
-// ---------- Paste a form link (checked here, questions copied by the user) ----------
-async function onLinkSubmit(e) {
-  e.preventDefault();
-  const msg = $('#linkMsg');
-  const panel = $('#linkPanel');
-  const raw = $('#formLink').value.trim();
-  let url;
-  try { url = new URL(raw); } catch { url = null; }
-  if (!url) {
-    msg.textContent = t('linkInvalid');
-    panel.hidden = true;
-    return;
-  }
-  if (url.protocol !== 'https:') {
-    msg.textContent = t('linkHttps');
-    panel.hidden = true;
-    return;
-  }
-  $('#linkOpen').href = url.href;
-  panel.hidden = false;
-
-  // With the server running, it visits the link and reads the questions for us.
-  msg.textContent = t('linkReading');
-  const r = await serverParseUrl(url.href);
-  if (r.offline) { msg.textContent = t('linkOk'); return; }
-  if (!r.ok) { msg.textContent = t(LINK_ERRORS[r.code] || 'linkFetchFailed'); return; }
-
-  msg.textContent = t('linkFound', r.fields.length);
-  startForm({ id: 'link', title: r.title, fields: r.fields, sourceUrl: r.sourceUrl });
-  if (r.flagged) showToast(t('flagCount', r.flagged));
-}
-
+// ---------- Paste a form link (the server reads its questions) ----------
 const LINK_ERRORS = {
   blocked: 'linkBlocked',
   needs_signin: 'linkNeedsSignin',
@@ -2192,6 +3769,28 @@ const LINK_ERRORS = {
   too_large: 'linkNoQuestions',
   fetch_failed: 'linkFetchFailed',
 };
+
+// Works for Google Forms and ordinary public HTML forms. The questions then run through the
+// same guided flow as pasted text: every answer is checked, read back, and saved only after
+// the user confirms it. Google Forms gets a pre-filled link on the last screen.
+async function onLinkSubmit(e) {
+  e.preventDefault();
+  const msg = $('#linkMsg');
+  const raw = $('#formLink').value.trim();
+  let url = null;
+  try { url = new URL(raw); } catch { /* not a link */ }
+  if (!url) { msg.textContent = t('linkInvalid'); return; }
+  if (url.protocol !== 'https:') { msg.textContent = t('linkHttps'); return; }
+
+  msg.textContent = t('linkReading');
+  const r = await serverParseUrl(url.href);
+  if (r.offline) { msg.textContent = t('linkOffline'); return; }
+  if (!r.ok) { msg.textContent = `${t(LINK_ERRORS[r.code] || 'linkFetchFailed')} ${t('linkFallback')}`; return; }
+
+  msg.textContent = t('linkFound', r.fields.length);
+  startForm({ id: 'link', title: r.title, fields: r.fields, sourceUrl: r.sourceUrl });
+  if (r.flagged) showToast(t('flagCount', r.flagged));
+}
 
 // ---------- Paste & upload (F1) ----------
 async function onPasteSubmit(e) {
@@ -2276,9 +3875,12 @@ function confetti() {
 }
 
 // ---------- Language switch without losing answers (FR9) ----------
-function switchLang(code) {
+async function switchLang(code) {
   const f = state.form && current();
   const typed = f && f.type === 'select' ? $('#answerSelect').value : $('#answerInput').value;
+  if (code === 'hi' && state.form) {
+    try { await ensureHindi(state.form); } catch { /* shown below */ }
+  }
   setLang(code);
   state.prefs.lang = code;
   savePrefs();
@@ -2311,7 +3913,6 @@ function bind() {
   $('#btnAutoRead').addEventListener('click', () => { state.autoRead = !state.autoRead; savePrefs(); updateToggles(); });
   $('#btnContrast').addEventListener('click', () => { document.body.classList.toggle('hc'); savePrefs(); updateToggles(); });
   $('#btnLarge').addEventListener('click', () => { document.documentElement.classList.toggle('large'); savePrefs(); updateToggles(); });
-  $('#btnShortcuts').addEventListener('click', () => { state.shortcuts = !state.shortcuts; savePrefs(); updateToggles(); });
   $('#btnHelp').addEventListener('click', () => openDlg('helpDlg'));
   $$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
   $('#consentAgree').addEventListener('click', () => {
@@ -2321,7 +3922,6 @@ function bind() {
   });
 
   $('#linkForm').addEventListener('submit', onLinkSubmit);
-  $('#btnSignIn').addEventListener('click', () => openDlg('signDlg'));
   $('#btnStoreDelete').addEventListener('click', () => { clearSaved(); renderResume(); showToast(t('deleted')); });
   $('#saveProgress').addEventListener('change', (e) => {
     if (!e.target.checked) { clearSaved(); renderResume(); }
@@ -2334,6 +3934,17 @@ function bind() {
 
   $('#btnMic').addEventListener('click', onMic);
   $('#btnListenQ').addEventListener('click', readQuestion);
+  $('#btnVoice').addEventListener('click', () => {
+    if (voice.on || voice.offering) stopVoice();
+    else startVoice();
+  });
+  // Any answer control used by hand takes over from the voice mode.
+  $('#screen-flow').addEventListener('click', (e) => {
+    if ((voice.on || voice.offering) && e.target.closest('#btnConfirm, #btnEdit, #btnBack, #btnMic, #btnRepeat, #btnListenQ, #optionGrid')) stopVoice();
+  }, true);
+  $('#answerInput').addEventListener('keydown', (e) => {
+    if ((voice.on || voice.offering) && e.key === 'Enter') stopVoice();
+  });
   $('#answerForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const f = current();
@@ -2370,6 +3981,7 @@ function init() {
   loadPrefs();
   applyStatic();
   updateToggles();
+  updateVoiceUI();
   renderResume();
   bind();
   // Let the user know when the optional server is connected. Silent if it is off.
@@ -2377,7 +3989,13 @@ function init() {
 }
 
 init();
-
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js")
+            .then(() => console.log("AwaazForm PWA registered"))
+            .catch(error => console.error("PWA registration failed:", error));
+    });
+}
 </script>
 </body>
 </html>

@@ -132,9 +132,20 @@ function matchOption(field, raw) {
   }));
 }
 
+// Removes symbols that speech input, translation and typing add to an answer:
+// bars, Hindi sentence marks, question and exclamation marks, quotes anywhere;
+// full stops, commas, colons and semicolons at the start or end. Letters and digits are kept.
+export function cleanAnswer(raw) {
+  return String(raw ?? '')
+    .replace(/[|।?!"“”„]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s.,;:]+|[\s.,;:]+$/g, '')
+    .trim();
+}
+
 // Returns { valid, value } or { valid:false, err } where err is an i18n key.
 export function normalize(field, raw) {
-  const v = String(raw ?? '').trim();
+  const v = cleanAnswer(raw);
 
   if (field.type === 'select') {
     if (!v) return field.required ? bad('errOption') : ok('');
@@ -223,13 +234,14 @@ export function parseText(text) {
   });
 }
 
-// ---------- Pre-filled link for Google Forms ----------
-// Builds a link that opens the real Google Form with the confirmed answers already filled in.
-// The user checks it and presses Submit themselves; nothing is ever submitted for them.
-// Private ('sensitive') answers are never put in a link, because links stay in browser history.
-// Returns { url, filled, left } or null when this form cannot be pre-filled.
+// ---------- Google Form with confirmed answers filled in ----------
+// Builds the address of the real Google Form with the confirmed answers already filled in.
+// Used to show the form inside AwaazForm (embedded=true) and for the "open in a new tab" link.
+// Nothing is submitted: the user presses Submit on the form themselves.
+// Private ('sensitive') answers are never put in the address, because addresses stay in history.
+// Returns { url, filled, left }, or null when this is not a Google Form link.
 // `left` counts answers the user must type in themselves.
-export function buildPrefillUrl(form, answers) {
+export function buildFormUrl(form, answers, { embedded = false } = {}) {
   let u;
   try { u = new URL(form.sourceUrl); } catch { return null; }
   if (u.protocol !== 'https:' || u.hostname !== 'docs.google.com' || !/\/forms\//.test(u.pathname)) return null;
@@ -237,6 +249,7 @@ export function buildPrefillUrl(form, answers) {
   u.hash = '';
   u.pathname = `${u.pathname.replace(/\/(viewform|formResponse|edit|prefill)?\/?$/, '')}/viewform`;
   u.searchParams.set('usp', 'pp_url');
+  if (embedded) u.searchParams.set('embedded', 'true');
 
   let filled = 0;
   let left = 0;
@@ -255,7 +268,7 @@ export function buildPrefillUrl(form, answers) {
     }
     filled++;
   }
-  return filled ? { url: u.href, filled, left } : null;
+  return { url: u.href, filled, left };
 }
 
 // ---------- PII masking for copied / shared text ----------

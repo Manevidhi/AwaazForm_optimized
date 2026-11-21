@@ -78,3 +78,95 @@ class SessionOut(SessionIn):
 class SessionCreated(BaseModel):
     id: str
     expires_at: datetime
+
+# ---- user accounts and basic profile ----
+from pydantic import field_validator
+
+
+class UserRegister(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    email: str = Field(min_length=5, max_length=254)
+    password: str = Field(min_length=8, max_length=128)
+    mobile_number: Optional[str] = Field(default=None, max_length=20)
+    date_of_birth: Optional[str] = Field(default=None, max_length=10)
+    address: Optional[str] = Field(default=None, max_length=500)
+    city: Optional[str] = Field(default=None, max_length=100)
+    state: Optional[str] = Field(default=None, max_length=100)
+    pin_code: Optional[str] = Field(default=None, max_length=10)
+    preferred_language: Lang = "en"
+
+    @field_validator("full_name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if not value:
+            raise ValueError("Full name is required")
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def clean_email(cls, value: str) -> str:
+        value = value.strip().lower()
+        import re
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", value):
+            raise ValueError("Enter a valid email address")
+        return value
+
+    @field_validator("mobile_number")
+    @classmethod
+    def clean_mobile(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or not value.strip():
+            return None
+        value = value.strip()
+        import re
+        if not re.fullmatch(r"\+?[0-9 ()-]{7,20}", value):
+            raise ValueError("Enter a valid mobile number")
+        return value
+
+    @field_validator("pin_code")
+    @classmethod
+    def clean_pin(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or not value.strip():
+            return None
+        value = value.strip()
+        if not value.isdigit() or not 4 <= len(value) <= 10:
+            raise ValueError("Enter a valid PIN code")
+        return value
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str = Field(min_length=1, max_length=128)
+
+
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    mobile_number: Optional[str] = Field(default=None, max_length=20)
+    date_of_birth: Optional[str] = Field(default=None, max_length=10)
+    address: Optional[str] = Field(default=None, max_length=500)
+    city: Optional[str] = Field(default=None, max_length=100)
+    state: Optional[str] = Field(default=None, max_length=100)
+    pin_code: Optional[str] = Field(default=None, max_length=10)
+    preferred_language: Optional[Lang] = None
+
+
+class UserProfile(BaseModel):
+    id: str
+    full_name: str
+    email: str
+    mobile_number: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pin_code: Optional[str] = None
+    preferred_language: Lang
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserProfile
