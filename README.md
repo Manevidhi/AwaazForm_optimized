@@ -80,12 +80,6 @@ python3 tools/build_standalone.py
 
 Shagun (frontend), Meenakshi (prompts and LLM), Vidhi (backend), Shruti (pitch and spec), Harika (testing and QA).
 
-## Accounts and profile autofill
-
-The backend includes registration, login, profile retrieval and profile update endpoints under `/api/auth`. Basic profile fields include full name, email, mobile number, date of birth, address, city, state, PIN code and preferred language. Passwords are PBKDF2-SHA256 hashed. Set a unique random `AUTH_SECRET` in `backend/.env` before using real accounts.
-
-The website has no sign-in button or profile autofill. The Chrome extension signs in to these endpoints itself, and uses the saved profile to suggest matching answers.
-
 ## Google Forms Chrome extension
 
 The `extension/` folder contains a Chrome Manifest V3 extension. It opens in Chrome's side panel beside the original Google Form, reads visible questions, supports text/radio/checkbox/dropdown controls where detected, offers speech input/output, autofills matching profile fields, and allows the user to confirm submission. Follow `extension/README.md` to load it unpacked in Chrome.
